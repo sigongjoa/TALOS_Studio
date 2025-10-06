@@ -1,0 +1,45 @@
+# Python virtual environments
+env/
+venv/
+.env
+.venv
+venv_vibe/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Node.js dependencies
+node_modules/
+
+# Log files
+*.log
+server.log
+simulation.log
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.idea/
+.vscode/
+
+# Large data/media files
+*.pt
+*.blend
+*.blend1
+*.blend-retarget
+*.mp4
+*.npz
+*.bvh
+*.gif
+
+# Output directories
+/ani_bender/output_data/
+/ani_bender/video/
+/Effect_Stokes/outputs/
+/MotionEq/output/
+
+# pytest cache
+.pytest_cache/
