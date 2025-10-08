@@ -2,17 +2,19 @@ import cv2
 import os
 import argparse
 import numpy as np
+import json
 
 from .pipeline import Pipeline, FrameContextBuilder
 from .steps.detection import EdgeDetectionStep
 from .steps.estimation import DepthEstimationStep, FlowEstimationStep
+from .steps.vectorization import LineVectorizationStep
+from .steps.projection import Backprojection3DStep
+from .steps.tracking import LineTrackingStep
 from .strategies.detectors import CannyDetector
 from .strategies.estimators import MiDaSEstimator, RAFTEstimator
 
 def visualize_flow(flow):
     """Converts an optical flow map to a color image for visualization."""
-    # Use Hue, Saturation, Value (HSV) color space
-    # Hue corresponds to direction, Value to magnitude
     magnitude, angle = cv2.cartToPolar(flow[..., 0], flow[..., 1])
     hsv = np.zeros((flow.shape[0], flow.shape[1], 3), dtype=np.uint8)
     hsv[..., 0] = angle * 180 / np.pi / 2
@@ -27,7 +29,7 @@ def main():
     parser.add_argument('--video', type=str, required=True, help="Path to the input video file.")
     args = parser.parse_args()
 
-    print("--- Starting Full Pipeline Test (Edge, Depth, Flow) ---")
+    print("--- Starting Full Pipeline Test (Edge, Depth, Flow, Vectorization, 3D Projection) ---")
     
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) # AXIS directory
     output_dir = os.path.join(base_dir, 'tests/data')
@@ -47,7 +49,10 @@ def main():
     pipeline = Pipeline(steps=[
         EdgeDetectionStep(strategy=edge_strategy),
         DepthEstimationStep(strategy=depth_strategy),
-        FlowEstimationStep(strategy=flow_strategy)
+        LineVectorizationStep(),
+        Backprojection3DStep(),
+        FlowEstimationStep(strategy=flow_strategy),
+        LineTrackingStep()
     ])
 
     # 3. Open video and process frame by frame
@@ -79,21 +84,22 @@ def main():
         # Save results for a specific frame (e.g., frame 5) for verification
         if frame_idx == 5:
             print(f"--- Saving results for frame {frame_idx} ---")
-            if processed_context.edge_map is not None:
-                path = os.path.join(output_dir, f"frame_{frame_idx}_edge.png")
-                cv2.imwrite(path, processed_context.edge_map)
-                print(f"Saved edge map to {path}")
-
-            if processed_context.depth_map is not None:
-                path = os.path.join(output_dir, f"frame_{frame_idx}_depth.png")
-                cv2.imwrite(path, processed_context.depth_map)
-                print(f"Saved depth map to {path}")
-
-            if processed_context.flow_map is not None:
-                flow_viz = visualize_flow(processed_context.flow_map)
-                path = os.path.join(output_dir, f"frame_{frame_idx}_flow.png")
-                cv2.imwrite(path, flow_viz)
-                print(f"Saved flow map to {path}")
+            
+            # Save 3D lines if they exist
+            if processed_context.lines is not None:
+                lines_3d_for_json = [
+                    {
+                        "line_id": line.line_id,
+                        "layer": line.layer,
+                        "points_3d": line.points_3d.tolist(),
+                        "pressure": line.pressure.tolist()
+                    }
+                    for line in processed_context.lines
+                ]
+                json_path_3d = os.path.join(output_dir, f"frame_{frame_idx}_lines_3d.json")
+                with open(json_path_3d, 'w') as f:
+                    json.dump(lines_3d_for_json, f, indent=2)
+                print(f"Saved 3D lines data to {json_path_3d}")
 
         prev_frame = frame
         frame_idx += 1
