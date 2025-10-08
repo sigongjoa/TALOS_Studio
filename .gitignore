@@ -4,6 +4,7 @@ venv/
 .env
 .venv
 venv_vibe/
+/AXIS/venv/
 
 # Python cache
 __pycache__/
