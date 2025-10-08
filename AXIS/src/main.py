@@ -3,21 +3,22 @@ import os
 import argparse
 import numpy as np
 import json
-
-from .pipeline import Pipeline, FrameContextBuilder
-from .data_models import Line3D
-from .steps.detection import EdgeDetectionStep
-from .steps.estimation import DepthEstimationStep, FlowEstimationStep
-from .steps.vectorization import LineVectorizationStep
-from .steps.projection import Backprojection3DStep, CAMERA_INTRINSICS
-from .steps.tracking import LineTrackingStep
-from .strategies.detectors import CannyDetector
-from .strategies.estimators import MiDaSEstimator, RAFTEstimator
 from typing import List
+
+from AXIS.src.pipeline import Pipeline, FrameContextBuilder
+from AXIS.src.data_models import Line3D
+from AXIS.src.steps.detection import EdgeDetectionStep
+from AXIS.src.steps.estimation import DepthEstimationStep, FlowEstimationStep
+from AXIS.src.steps.vectorization import LineVectorizationStep
+from AXIS.src.steps.projection import Backprojection3DStep, CAMERA_INTRINSICS
+from AXIS.src.steps.tracking import LineTrackingStep
+from AXIS.src.strategies.detectors import CannyDetector
+from AXIS.src.strategies.estimators import MiDaSEstimator, RAFTEstimator
 
 def _project_3d_to_2d(lines_3d: List[Line3D], h: int, w: int) -> List[np.ndarray]:
     """Helper to project a list of 3D lines to 2D screen space for visualization."""
     k = CAMERA_INTRINSICS
+    # Adjust camera intrinsics for the actual (resized) frame dimensions
     scale_x = w / (k[0, 2] * 2)
     scale_y = h / (k[1, 2] * 2)
     fx, fy = k[0, 0] * scale_x, k[1, 1] * scale_y
@@ -39,7 +40,8 @@ def main():
     """Processes a video to generate a JSON data file for the web visualizer."""
     parser = argparse.ArgumentParser(description="Generate visualization data from a video.")
     parser.add_argument('--video', type=str, required=True, help="Path to the input video file.")
-    parser.add_argument('--output', type=str, required=True, help="Path to save the output data.json file.")
+    parser.add_argument('--output', type=str, required=True, help="Path to save the output scene_data.json file.")
+    parser.add_argument('--max_frames', type=int, default=None, help='Maximum number of frames to process for testing.')
     args = parser.parse_args()
 
     print(f"--- Generating visualization data for {args.video} ---")
@@ -50,7 +52,7 @@ def main():
 
     # 1. Initialize strategies and the stateful tracking step
     print("Initializing strategies...")
-    tracking_step = LineTrackingStep() # Stateful step
+    tracking_step = LineTrackingStep()
 
     # 2. Create the pipeline
     pipeline = Pipeline(steps=[
@@ -70,6 +72,10 @@ def main():
     
     print("Starting video processing...")
     while cap.isOpened():
+        if args.max_frames is not None and frame_idx >= args.max_frames:
+            print(f"Reached max_frames limit of {args.max_frames}.")
+            break
+
         ret, frame = cap.read()
         if not ret:
             break
@@ -87,9 +93,9 @@ def main():
         print(f"Running pipeline for frame {frame_idx}...")
         processed_context = pipeline.run(builder)
 
-        # Prepare data for JSON
+        # Transform and collect data for this frame
         if processed_context.lines:
-            projected_points = _project_3d_to_2d(processed_context.lines, h, w)
+            projected_points_list = _project_3d_to_2d(processed_context.lines, h, w)
             frame_data = {
                 "frame_index": frame_idx,
                 "lines": [
@@ -97,7 +103,7 @@ def main():
                         "id": line.line_id,
                         "points": points.tolist()
                     }
-                    for line, points in zip(processed_context.lines, projected_points)
+                    for line, points in zip(processed_context.lines, projected_points_list)
                 ]
             }
             all_frames_data.append(frame_data)

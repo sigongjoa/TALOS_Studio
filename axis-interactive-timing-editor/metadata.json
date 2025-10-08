@@ -1,0 +1,5 @@
+{
+  "name": "AXIS Interactive Timing Editor",
+  "description": "A web-based UI mock for visualizing and editing animation timing curves for 3D lines. This application features a main visualization canvas, a dope sheet for managing animation layers, and an interactive graph editor to control easing and spacing with Bézier curves.",
+  "requestFramePermissions": []
+}
