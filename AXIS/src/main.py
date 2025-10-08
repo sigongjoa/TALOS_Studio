@@ -5,51 +5,68 @@ import numpy as np
 import json
 
 from .pipeline import Pipeline, FrameContextBuilder
+from .data_models import Line3D
 from .steps.detection import EdgeDetectionStep
 from .steps.estimation import DepthEstimationStep, FlowEstimationStep
 from .steps.vectorization import LineVectorizationStep
-from .steps.projection import Backprojection3DStep
+from .steps.projection import Backprojection3DStep, CAMERA_INTRINSICS
 from .steps.tracking import LineTrackingStep
 from .strategies.detectors import CannyDetector
 from .strategies.estimators import MiDaSEstimator, RAFTEstimator
+from typing import List
+
+def _project_3d_to_2d(lines_3d: List[Line3D], h: int, w: int) -> List[np.ndarray]:
+    """Helper to project a list of 3D lines to 2D screen space for visualization."""
+    k = CAMERA_INTRINSICS
+    scale_x = w / (k[0, 2] * 2)
+    scale_y = h / (k[1, 2] * 2)
+    fx, fy = k[0, 0] * scale_x, k[1, 1] * scale_y
+    cx, cy = k[0, 2] * scale_x, k[1, 2] * scale_y
+
+    projected_line_points = []
+    for line in lines_3d:
+        points_2d = []
+        for x, y, z in line.points_3d:
+            if z > 1e-3: # Avoid division by zero or very small numbers
+                u = fx * x / z + cx
+                v = fy * y / z + cy
+                points_2d.append([u, v])
+        if points_2d:
+            projected_line_points.append(np.array(points_2d))
+    return projected_line_points
 
 def main():
-    """A test script to verify the full pipeline with video input."""
-    parser = argparse.ArgumentParser(description="Run the full AXIS pipeline on a video.")
+    """Processes a video to generate a JSON data file for the web visualizer."""
+    parser = argparse.ArgumentParser(description="Generate visualization data from a video.")
     parser.add_argument('--video', type=str, required=True, help="Path to the input video file.")
+    parser.add_argument('--output', type=str, required=True, help="Path to save the output data.json file.")
     args = parser.parse_args()
 
-    print("--- Starting Full Pipeline Test with Line Tracking ---")
+    print(f"--- Generating visualization data for {args.video} ---")
     
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) # AXIS directory
-    output_dir = os.path.join(base_dir, 'tests/data')
-    os.makedirs(output_dir, exist_ok=True)
-
     if not os.path.exists(args.video):
         print(f"Error: Input video not found at {args.video}")
         return
 
     # 1. Initialize strategies and the stateful tracking step
     print("Initializing strategies...")
-    edge_strategy = CannyDetector()
-    depth_strategy = MiDaSEstimator()
-    flow_strategy = RAFTEstimator(model_name="raft_small")
     tracking_step = LineTrackingStep() # Stateful step
 
-    # 2. Create the pipeline with all steps in logical order
+    # 2. Create the pipeline
     pipeline = Pipeline(steps=[
-        EdgeDetectionStep(strategy=edge_strategy),
-        DepthEstimationStep(strategy=depth_strategy),
-        FlowEstimationStep(strategy=flow_strategy),
+        EdgeDetectionStep(strategy=CannyDetector()),
+        DepthEstimationStep(strategy=MiDaSEstimator()),
+        FlowEstimationStep(strategy=RAFTEstimator(model_name="raft_small")),
         LineVectorizationStep(),
         Backprojection3DStep(),
-        tracking_step # Use the same instance in every loop
+        tracking_step
     ])
 
-    # 3. Open video and process frame by frame
+    # 3. Open video and process all frames
     cap = cv2.VideoCapture(args.video)
     prev_frame = None
     frame_idx = 0
+    all_frames_data = []
     
     print("Starting video processing...")
     while cap.isOpened():
@@ -57,43 +74,48 @@ def main():
         if not ret:
             break
 
-        # --- Resize frame to reduce memory usage ---
         max_height = 512
         h, w, _ = frame.shape
         if h > max_height:
             scale = max_height / h
             new_w, new_h = int(w * scale), int(h * scale)
             frame = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
+        
+        h, w, _ = frame.shape # Get new dimensions
 
-        # Create the builder for the current frame
         builder = FrameContextBuilder(frame_index=frame_idx, original_frame=frame, prev_frame=prev_frame)
-
-        # Run the pipeline
         print(f"Running pipeline for frame {frame_idx}...")
         processed_context = pipeline.run(builder)
 
-        # Save results for frames 5 and 6 for verification
-        if frame_idx == 5 or frame_idx == 6:
-            print(f"--- Saving results for frame {frame_idx} ---")
-            
-            if processed_context.lines is not None:
-                lines_for_json = [
+        # Prepare data for JSON
+        if processed_context.lines:
+            projected_points = _project_3d_to_2d(processed_context.lines, h, w)
+            frame_data = {
+                "frame_index": frame_idx,
+                "lines": [
                     {
-                        "line_id": line.line_id,
-                        "points_3d_count": len(line.points_3d)
+                        "id": line.line_id,
+                        "points": points.tolist()
                     }
-                    for line in processed_context.lines
+                    for line, points in zip(processed_context.lines, projected_points)
                 ]
-                json_path = os.path.join(output_dir, f"frame_{frame_idx}_tracked_lines.json")
-                with open(json_path, 'w') as f:
-                    json.dump(lines_for_json, f, indent=2)
-                print(f"Saved tracked lines summary to {json_path}")
+            }
+            all_frames_data.append(frame_data)
 
         prev_frame = frame
         frame_idx += 1
 
     cap.release()
-    print("--- Video processing finished ---")
+    print("Video processing finished.")
+
+    # 4. Save all data to the output file
+    output_dir = os.path.dirname(args.output)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+        
+    with open(args.output, 'w') as f:
+        json.dump(all_frames_data, f)
+    print(f"Successfully saved visualization data to {args.output}")
 
 if __name__ == "__main__":
     main()
