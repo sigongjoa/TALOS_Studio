@@ -13,23 +13,13 @@ from .steps.tracking import LineTrackingStep
 from .strategies.detectors import CannyDetector
 from .strategies.estimators import MiDaSEstimator, RAFTEstimator
 
-def visualize_flow(flow):
-    """Converts an optical flow map to a color image for visualization."""
-    magnitude, angle = cv2.cartToPolar(flow[..., 0], flow[..., 1])
-    hsv = np.zeros((flow.shape[0], flow.shape[1], 3), dtype=np.uint8)
-    hsv[..., 0] = angle * 180 / np.pi / 2
-    hsv[..., 1] = 255
-    hsv[..., 2] = cv2.normalize(magnitude, None, 0, 255, cv2.NORM_MINMAX)
-    bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-    return bgr
-
 def main():
     """A test script to verify the full pipeline with video input."""
     parser = argparse.ArgumentParser(description="Run the full AXIS pipeline on a video.")
     parser.add_argument('--video', type=str, required=True, help="Path to the input video file.")
     args = parser.parse_args()
 
-    print("--- Starting Full Pipeline Test (Edge, Depth, Flow, Vectorization, 3D Projection) ---")
+    print("--- Starting Full Pipeline Test with Line Tracking ---")
     
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) # AXIS directory
     output_dir = os.path.join(base_dir, 'tests/data')
@@ -39,20 +29,21 @@ def main():
         print(f"Error: Input video not found at {args.video}")
         return
 
-    # 1. Initialize strategies
+    # 1. Initialize strategies and the stateful tracking step
     print("Initializing strategies...")
     edge_strategy = CannyDetector()
     depth_strategy = MiDaSEstimator()
     flow_strategy = RAFTEstimator(model_name="raft_small")
+    tracking_step = LineTrackingStep() # Stateful step
 
-    # 2. Create the pipeline with all steps
+    # 2. Create the pipeline with all steps in logical order
     pipeline = Pipeline(steps=[
         EdgeDetectionStep(strategy=edge_strategy),
         DepthEstimationStep(strategy=depth_strategy),
+        FlowEstimationStep(strategy=flow_strategy),
         LineVectorizationStep(),
         Backprojection3DStep(),
-        FlowEstimationStep(strategy=flow_strategy),
-        LineTrackingStep()
+        tracking_step # Use the same instance in every loop
     ])
 
     # 3. Open video and process frame by frame
@@ -81,25 +72,22 @@ def main():
         print(f"Running pipeline for frame {frame_idx}...")
         processed_context = pipeline.run(builder)
 
-        # Save results for a specific frame (e.g., frame 5) for verification
-        if frame_idx == 5:
+        # Save results for frames 5 and 6 for verification
+        if frame_idx == 5 or frame_idx == 6:
             print(f"--- Saving results for frame {frame_idx} ---")
             
-            # Save 3D lines if they exist
             if processed_context.lines is not None:
-                lines_3d_for_json = [
+                lines_for_json = [
                     {
                         "line_id": line.line_id,
-                        "layer": line.layer,
-                        "points_3d": line.points_3d.tolist(),
-                        "pressure": line.pressure.tolist()
+                        "points_3d_count": len(line.points_3d)
                     }
                     for line in processed_context.lines
                 ]
-                json_path_3d = os.path.join(output_dir, f"frame_{frame_idx}_lines_3d.json")
-                with open(json_path_3d, 'w') as f:
-                    json.dump(lines_3d_for_json, f, indent=2)
-                print(f"Saved 3D lines data to {json_path_3d}")
+                json_path = os.path.join(output_dir, f"frame_{frame_idx}_tracked_lines.json")
+                with open(json_path, 'w') as f:
+                    json.dump(lines_for_json, f, indent=2)
+                print(f"Saved tracked lines summary to {json_path}")
 
         prev_frame = frame
         frame_idx += 1

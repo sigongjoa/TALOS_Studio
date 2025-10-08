@@ -64,10 +64,9 @@ class Backprojection3DStep(ProcessingStep):
                         points_3d.append([x, y, z])
             
             if points_3d:
-                # For now, assign a placeholder ID and default pressure
-                line_id = f"line_{builder.get('frame_index')}_{i}"
+                # Assign a placeholder ID (-1) and default pressure. The real ID will be assigned by the tracking step.
                 lines_3d.append(Line3D(
-                    line_id=line_id,
+                    line_id=-1,
                     layer="default",
                     points_3d=np.array(points_3d),
                     pressure=np.ones(len(points_3d)) # Default pressure

@@ -7,7 +7,7 @@ import numpy as np
 @dataclass(frozen=True)
 class Line3D:
     """3D 공간상의 단일 라인을 표현하는 데이터 클래스"""
-    line_id: str
+    line_id: int
     layer: str
     points_3d: np.ndarray  # (N, 3) 형태의 3D 좌표 배열
     pressure: np.ndarray    # (N,) 형태의 압력 배열
