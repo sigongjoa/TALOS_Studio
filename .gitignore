@@ -48,3 +48,6 @@ Thumbs.db
 # Frontend build/data files
 /axis-interactive-timing-editor/public/scene_data.json
 /axis-interactive-timing-editor/public/output_images/
+
+# Ignore AI library source code and environments
+/line_detection_comparison/libs/
