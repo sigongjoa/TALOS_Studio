@@ -27,6 +27,30 @@ The following libraries were evaluated:
 -   **Wireframe Transformer**
 -   **LineArt / Sketch Simplification Models**
 
+### 3.1. Line Art Extraction & Simplification Models
+
+These models are specialized in extracting clean line art from images, often with a focus on anime/manga styles or general sketch simplification.
+
+| Model Name | Main Task | Model Architecture | Framework | Pre-trained Models | GitHub Stars | Animation Suitability |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **MangaLineExtraction_PyTorch** | Structural Line Art Extraction | FCN | PyTorch | Provided (erika.pth) | 178 | High |
+| **Anime2Sketch** | Multi-purpose Sketch Extraction | GAN (Domain Adaptation) | PyTorch | Provided (Google Drive) | 2.1k | Very High |
+| **ArtLine** | Human Line Art | U-Net + Perceptual Loss | PyTorch (fast.ai) | Provided (Colab/RunwayML) | 3.6k | High (Human-centric) |
+| **sketch_simplification** | Rough Sketch Refinement | FCN / GAN | PyTorch | Provided (model_gan.t7 etc.) | 743 | High (for preprocessing) |
+| **ControlNet (lineart_anime)** | High-fidelity Line Art Generation | Diffusion + ControlNet | PyTorch (Diffusers/UI) | Provided (Hugging Face) | N/A | Very High (State-of-the-art) |
+
+### 3.2. Recent & Promising Line Detection Models
+
+These models represent recent advancements in general line and line segment detection, often combining deep learning with traditional computer vision techniques.
+
+| Model Name | Paper Year / Status | Implementation | Feature Summary | GitHub / arXiv |
+| :--- | :--- | :--- | :--- | :--- |
+| **DeepLSD** | CVPR 2023 | ✅ Implemented (GitHub) | Deep learning + traditional method combination. Predicts line distance field, angle field, then applies refinement. | [GitHub](https://github.com/cherubicXN/DeepLSD) |
+| **ScaleLSD** | 2025 (Recent) | ✅ Implemented (Code in paper link) | Robust line detector operating domain-independently. "Code and Models are available" specified. | [arXiv](https://arxiv.org/abs/2308.09000) |
+| **Deep-Hough-Transform-Line-Priors** | ECCV 2020 | ✅ Implemented | Integrates traditional Hough Transform line knowledge (prior) into a neural network. | [GitHub](https://github.com/PeterWang512/Deep-Hough-Transform-Line-Priors) |
+| **SOLD2** | 2021 | ✅ Implemented | Provides a module for self-supervised line detection and descriptor merging. | [arXiv](https://arxiv.org/abs/2106.05606) |
+| **LineSegmentsDetection (Collection)** | — | ✅ Implemented (Collection) | Collection of various line segment detection algorithms + code. References DeepLSD, LETR, etc. | [GitHub](https://github.com/cherubicXN/LineSegmentsDetection) |
+
 ## 4. Comparison Results
 
 *(This section will be filled in once the `comparison_grid.png` is generated.)*
@@ -67,3 +91,7 @@ Based on the analysis, the recommended model for initial integration into the AX
 -   Proceed with Phase 1 (Technical Implementation) to generate the comparison results.
 -   Update this document with the generated results and complete the analysis.
 -   Begin integration of the chosen model into the main AXIS pipeline as per `AXIS_Development_Roadmap_and_Improvements.md`.
+
+## 8. Limitations and Considerations
+
+These models are primarily designed around line segments, and their ability to handle **smooth curves** perfectly is often limited. Most implementations approximate curves using straight line segments or combinations of segments. Directly outputting curve structures in a vector format is still largely an area of active research and experimentation, with fully stable implementations being rare.
