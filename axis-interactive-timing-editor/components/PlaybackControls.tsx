@@ -1,14 +1,12 @@
-
 import React from 'react';
 import { useAnimationLoop } from '../hooks/useAnimationLoop';
-import { PlayIcon, PauseIcon, ResetIcon } from './icons';
+import { PlayIcon, PauseIcon, ResetIcon, ChevronLeftIcon, ChevronRightIcon } from './icons';
 
 interface PlaybackControlsProps {
   currentFrame: number;
   totalFrames: number;
   isPlaying: boolean;
   onPlayPause: (playing: boolean) => void;
-  // FIX: Changed prop type to allow functional updates from React.useState, resolving a type error.
   onFrameChange: React.Dispatch<React.SetStateAction<number>>;
 }
 
@@ -20,8 +18,6 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
   onFrameChange,
 }) => {
   
-  // FIX: The callback for useAnimationLoop must accept a `deltaTime` argument to match its type signature.
-  // This resolves misleading type errors reported in `hooks/useAnimationLoop.ts`.
   useAnimationLoop(isPlaying, (_deltaTime) => {
     onFrameChange((prevFrame) => (prevFrame + 1) % (totalFrames + 1));
   });
@@ -35,6 +31,14 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
     onFrameChange(0);
   };
 
+  const handlePrevFrame = () => {
+    onFrameChange(prev => Math.max(0, prev - 1));
+  };
+
+  const handleNextFrame = () => {
+    onFrameChange(prev => Math.min(totalFrames, prev + 1));
+  };
+
   return (
     <div className="flex items-center gap-4 p-2 bg-gray-800 rounded-lg border border-gray-700">
       <div className="flex items-center gap-2">
@@ -46,6 +50,13 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
           <ResetIcon className="w-5 h-5 text-gray-300" />
         </button>
         <button
+          onClick={handlePrevFrame}
+          className="p-2 rounded-full hover:bg-gray-700 transition-colors"
+          aria-label="Previous Frame"
+        >
+          <ChevronLeftIcon className="w-5 h-5 text-gray-300" />
+        </button>
+        <button
           onClick={() => onPlayPause(!isPlaying)}
           className="p-2 rounded-full bg-emerald-500 hover:bg-emerald-600 transition-colors"
           aria-label={isPlaying ? 'Pause' : 'Play'}
@@ -55,6 +66,13 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
           ) : (
             <PlayIcon className="w-5 h-5 text-white" />
           )}
+        </button>
+        <button
+          onClick={handleNextFrame}
+          className="p-2 rounded-full hover:bg-gray-700 transition-colors"
+          aria-label="Next Frame"
+        >
+          <ChevronRightIcon className="w-5 h-5 text-gray-300" />
         </button>
       </div>
       <div className="w-20 text-center font-mono text-sm">
