@@ -34,14 +34,10 @@ export interface Motion {
 
 export interface SceneObject {
   id: string;
-  type: 'character' | 'object' | 'line'; // Added 'line' type
+  type: 'character' | 'object' | 'line' | 'curve'; // Updated types
   color: string;
   startPosition: Point;
   motions: Motion[];
-  // Optional property to hold pre-calculated frame data for line objects
-  frameData?: {
-    [key: number]: LinePoint[];
-  };
 }
 
 export interface Scene {

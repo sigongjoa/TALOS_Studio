@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
 import numpy as np
-from .data_models import FrameContext
+from .data_models import FrameContext, Circle, Triangle, Line2D, Line3D
 
 import dataclasses
 
@@ -14,8 +14,9 @@ class FrameContextBuilder:
         self._context_data: Dict[str, Any] = {
             "frame_index": frame_index,
             "original_frame": original_frame,
-            "prev_frame": prev_frame
         }
+        if prev_frame is not None:
+            self._context_data["prev_frame"] = prev_frame
 
     def get(self, key: str, default: Any = None) -> Any:
         return self._context_data.get(key, default)
@@ -24,18 +25,29 @@ class FrameContextBuilder:
         self._context_data[key] = value
         return self
 
+    def set_circles(self, circles: List[Circle]):
+        return self.set("circles", circles)
+
+    def set_triangles(self, triangles: List[Triangle]):
+        return self.set("triangles", triangles)
+
+    def set_lines_2d(self, lines_2d: List[Line2D]):
+        return self.set("lines_2d", lines_2d)
+        
+    def set_lines(self, lines: List[Line3D]):
+        return self.set("lines", lines)
+
+    def set_curves_2d(self, curves_2d: List['Curve2D']):
+        return self.set("curves_2d", curves_2d)
+
     def build(self) -> FrameContext:
         """최종적으로 불변의 FrameContext 객체를 생성합니다."""
-        # FrameContext 데이터클래스에 정의된 필드 이름만 가져옵니다.
         valid_field_names = {f.name for f in dataclasses.fields(FrameContext)}
-
-        # 빌더의 데이터 중, FrameContext에 실제 존재하는 필드만 필터링합니다.
         filtered_data = {
             key: value
             for key, value in self._context_data.items()
             if key in valid_field_names
         }
-
         return FrameContext(**filtered_data)
 
 # --- Pipeline Pattern ---

@@ -1,33 +1,23 @@
 import React from 'react';
-import { useAnimationLoop } from '../hooks/useAnimationLoop';
-import { PlayIcon, PauseIcon, ResetIcon, ChevronLeftIcon, ChevronRightIcon } from './icons';
+import { ResetIcon, ChevronLeftIcon, ChevronRightIcon } from './icons';
 
 interface PlaybackControlsProps {
   currentFrame: number;
   totalFrames: number;
-  isPlaying: boolean;
-  onPlayPause: (playing: boolean) => void;
   onFrameChange: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const PlaybackControls: React.FC<PlaybackControlsProps> = ({
   currentFrame,
   totalFrames,
-  isPlaying,
-  onPlayPause,
   onFrameChange,
 }) => {
-  
-  useAnimationLoop(isPlaying, (_deltaTime) => {
-    onFrameChange((prevFrame) => (prevFrame + 1) % (totalFrames + 1));
-  });
 
   const handleScrubberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onFrameChange(parseInt(e.target.value, 10));
   };
   
   const handleReset = () => {
-    onPlayPause(false);
     onFrameChange(0);
   };
 
@@ -55,17 +45,6 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
           aria-label="Previous Frame"
         >
           <ChevronLeftIcon className="w-5 h-5 text-gray-300" />
-        </button>
-        <button
-          onClick={() => onPlayPause(!isPlaying)}
-          className="p-2 rounded-full bg-emerald-500 hover:bg-emerald-600 transition-colors"
-          aria-label={isPlaying ? 'Pause' : 'Play'}
-        >
-          {isPlaying ? (
-            <PauseIcon className="w-5 h-5 text-white" />
-          ) : (
-            <PlayIcon className="w-5 h-5 text-white" />
-          )}
         </button>
         <button
           onClick={handleNextFrame}

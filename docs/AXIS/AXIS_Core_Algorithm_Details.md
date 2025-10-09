@@ -179,3 +179,74 @@ def backproject_to_3d(points_2d: np.ndarray, depth_map: np.ndarray, K: np.ndarra
   2.  일정 거리(threshold) 이내에서 매칭된 경우, 현재 라인(`current_lines[row_ind]`)은 이전 라인(`predicted_prev_lines[col_ind]`)의 ID를 계승합니다.
   3.  매칭되지 않은 현재 라인들은 '새로운 라인'으로 간주하고, `next_line_id`를 새로 부여하고 1 증가시킵니다.
   4.  매칭되지 않은 이전 라인들은 '사라진 라인'으로 간주하고, `line_registry`에서 비활성화(inactive) 처리합니다.
+
+---
+
+## 5. 원 검출 (Circle Detection)
+
+**목표**: 이미지에서 원형 객체를 검출하여 중심점과 반지름 정보를 추출합니다.
+
+**핵심 라이브러리**: `OpenCV`
+
+- **함수**: `cv2.HoughCircles()`
+- **로직**:
+  ```python
+  import cv2
+  import numpy as np
+
+  # 입력 이미지는 Grayscale이어야 함
+  gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+  # 노이즈 감소를 위해 블러 처리
+  blurred_frame = cv2.medianBlur(gray_frame, 5)
+
+  # 허프 원 변환을 사용하여 원 검출
+  circles = cv2.HoughCircles(
+      blurred_frame,
+      cv2.HOUGH_GRADIENT,
+      dp=1.2,  # 해상도 비율. 1이면 입력과 동일.
+      minDist=100, # 검출된 원 중심 간의 최소 거리
+      param1=100, # Canny 엣지 검출기의 상위 임계값
+      param2=30,  # 중심 검출을 위한 누적 임계값. 작을수록 더 많은 원을 검출.
+      minRadius=10, # 검출할 원의 최소 반지름
+      maxRadius=100 # 검출할 원의 최대 반지름
+  )
+
+  detected_circles = []
+  if circles is not None:
+      circles = np.uint16(np.around(circles))
+      for i in circles[0, :]:
+          # (중심 x, 중심 y, 반지름) 정보를 저장
+          detected_circles.append(( (i[0], i[1]), i[2] ))
+  ```
+
+---
+
+## 6. 삼각형 검출 (Triangle Detection)
+
+**목표**: 이미지에서 삼각형을 검출하여 세 꼭지점의 좌표를 추출합니다.
+
+**핵심 라이브러리**: `OpenCV`
+
+- **함수**: `cv2.findContours()`, `cv2.approxPolyDP()`
+- **로직**:
+  ```python
+  import cv2
+
+  # Grayscale 변환 및 Threshold 처리
+  gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+  _, threshold = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+
+  # 등고선 찾기
+  contours, _ = cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+  detected_triangles = []
+  for contour in contours:
+      # 등고선을 근사화하여 꼭지점 수를 줄임
+      epsilon = 0.04 * cv2.arcLength(contour, True)
+      approx = cv2.approxPolyDP(contour, epsilon, True)
+
+      # 꼭지점이 3개이면 삼각형으로 간주
+      if len(approx) == 3:
+          vertices = approx.reshape(3, 2)
+          detected_triangles.append(vertices)
+  ```

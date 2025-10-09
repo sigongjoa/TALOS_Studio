@@ -44,3 +44,7 @@ Thumbs.db
 
 # pytest cache
 .pytest_cache/
+
+# Frontend build/data files
+/axis-interactive-timing-editor/public/scene_data.json
+/axis-interactive-timing-editor/public/output_images/

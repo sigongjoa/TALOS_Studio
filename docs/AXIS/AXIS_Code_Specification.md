@@ -19,6 +19,7 @@ AXIS/
 │   │   ├── __init__.py
 │   │   ├── detection.py      # EdgeDetectionStep
 │   │   ├── estimation.py     # DepthEstimationStep, FlowEstimationStep
+│   │   ├── shape_detection.py # CircleDetectionStep, TriangleDetectionStep
 │   │   └── tracking.py       # LineTrackingStep
 │   └── strategies/             # 교체 가능한 알고리즘(전략)들
 │       ├── __init__.py
@@ -38,6 +39,23 @@ from typing import List, Tuple, Dict
 import numpy as np
 
 @dataclass(frozen=True)
+class Point2D:
+    """2D 공간상의 단일 점을 표현"""
+    x: float
+    y: float
+
+@dataclass(frozen=True)
+class Circle:
+    """검출된 원을 표현"""
+    center: Point2D
+    radius: float
+
+@dataclass(frozen=True)
+class Triangle:
+    """검출된 삼각형을 표현"""
+    vertices: Tuple[Point2D, Point2D, Point2D]
+
+@dataclass(frozen=True)
 class Line3D:
     """3D 공간상의 단일 라인을 표현하는 데이터 클래스"""
     line_id: str
@@ -54,6 +72,8 @@ class FrameContext:
     depth_map: np.ndarray | None = None
     flow_map: np.ndarray | None = None
     lines: List[Line3D] | None = None
+    circles: List[Circle] | None = None
+    triangles: List[Triangle] | None = None
     metrics: Dict[str, float] | None = None
 ```
 
@@ -166,9 +186,25 @@ class EdgeDetectionStep(ProcessingStep):
         return builder
 ```
 
-## 7. API 사용 예시 (`validation_script_3d.py`)
+## 7. 산출물 정의 (Output Definition)
 
-정의된 모든 클래스와 인터페이스를 조립하여 파이프라인을 실행하는 최종 스크립트입니다.
+AXIS는 각 프레임에 대한 작화 정보를 두 가지 형태로 출력합니다.
+
+### 7.1. 구조화된 데이터 (JSON)
+
+- **파일**: `scene_data.json`
+- **목적**: 프론트엔드 Dope Sheet와의 연동, 개별 객체 제어, 상호작용 등 동적인 처리를 위함.
+- **내용**: 모든 프레임에 대한 라인, 원, 삼각형 등의 벡터 좌표 및 속성 정보를 포함합니다.
+
+### 7.2. 렌더링된 이미지 (PNG)
+
+- **경로**: `output_images/frame_{frame_index:04d}/`
+- **목적**: 각 검출 단계의 결과를 시각적으로 즉시 디버깅하고 확인하기 위함.
+- **파일 구성**:
+    - `original.png`: 원본 프레임 이미지
+    - `lines.png`: 투명 배경에 검출된 라인이 그려진 이미지
+    - `circles.png`: 투명 배경에 검출된 원이 그려진 이미지
+    - `triangles.png`: 투명 배경에 검출된 삼각형이 그려진 이미지
 
 ```python
 from AXIS.src.pipeline import Pipeline, FrameContextBuilder
@@ -187,7 +223,7 @@ def main():
     pipeline_steps = [
         EdgeDetectionStep(strategy=edge_detector),
         DepthEstimationStep(strategy=depth_estimator),
-        # ... FlowEstimationStep, LineTrackingStep 등 추가
+        # ... FlowEstimationStep, CircleDetectionStep, LineTrackingStep 등 추가
     ]
 
     # 3. 파이프라인 생성

@@ -21,15 +21,19 @@ AXIS operates through a sequential pipeline of specialized sub-modules:
 
 ## 3. Technical & Mathematical Definition
 
-The fundamental output of AXIS is a set of parametric curves, where each curve represents a single stroke.
+The fundamental output of AXIS is a set of geometric primitives, where each primitive represents a component of the drawing.
 
-A stroke $s_i$ is defined as:
+A stroke $s_i$ (a line) is defined as:
 
-$$ s_i(t) = (x_i(t), y_i(t), p_i(t)), \quad t \in [0, 1] $$
+$ s_i(t) = (x_i(t), y_i(t), p_i(t)), \quad t \in [0, 1] $
 
 Where:
 - **$(x_i(t), y_i(t))$**: The 2D coordinates of the point on the curve at parameter $t$.
 - **$p_i(t)$**: The pressure or thickness of the stroke at that point.
+
+A circle $c_j$ is defined by its center $(x_j, y_j)$ and radius $r_j$.
+
+A triangle $v_k$ is defined by its three vertices $(x_{k1}, y_{k1}), (x_{k2}, y_{k2}), (x_{k3}, y_{k3})$.
 
 An important property of each stroke is its **curvature**, $\kappa_i$, which defines its bend:
 
