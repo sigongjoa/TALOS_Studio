@@ -1,9 +1,9 @@
-// FIX: Removed self-import of 'Point' which caused a name conflict with its own declaration.
-
 export interface Point {
   x: number;
   y: number;
 }
+
+export type LinePoint = [number, number];
 
 export interface EasingCurve {
   p1: Point;
@@ -34,10 +34,14 @@ export interface Motion {
 
 export interface SceneObject {
   id: string;
-  type: 'character' | 'object';
+  type: 'character' | 'object' | 'line'; // Added 'line' type
   color: string;
   startPosition: Point;
   motions: Motion[];
+  // Optional property to hold pre-calculated frame data for line objects
+  frameData?: {
+    [key: number]: LinePoint[];
+  };
 }
 
 export interface Scene {

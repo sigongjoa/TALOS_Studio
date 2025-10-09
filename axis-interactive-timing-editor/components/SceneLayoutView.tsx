@@ -1,43 +1,47 @@
 import React, { useRef, useEffect } from 'react';
-import type { Scene, SelectedPropertyPath } from '../types';
+import type { Scene, SceneObject, SelectedPropertyPath } from '../types';
 
-// Define the type for the line data we expect from the backend
-interface Line {
-  id: number;
-  points: [number, number][];
-}
-
-interface FrameData {
-  frame_index: number;
-  lines: Line[];
-}
-
-interface SceneLayoutViewProps {
-  scene: Scene; // Keep for other UI components that might need it
-  currentFrame: number;
-  selectedProperty: SelectedPropertyPath | null;
-  lineData: FrameData[]; // The actual data we will render
-}
-
-// A cache for line colors
-const colorMap: { [key: number]: string } = {};
-const getLineColor = (lineId: number): string => {
-    if (colorMap[lineId]) {
-        return colorMap[lineId];
-    }
-    // Simple hash function to generate a color from the ID
-    const color = `hsl(${(lineId * 47) % 360}, 100%, 50%)`;
-    colorMap[lineId] = color;
-    return color;
+// This function calculates the position of an object based on keyframes and curves.
+// It is kept for compatibility with non-line objects.
+const getCubicBezierValue = (t: number, p0: number, p1: number, p2: number, p3: number): number => {
+  const u = 1 - t;
+  const tt = t * t;
+  const uu = u * u;
+  const uuu = uu * u;
+  const ttt = tt * t;
+  let value = uuu * p0 + 3 * uu * t * p1 + 3 * u * tt * p2 + ttt * p3;
+  return value;
 };
 
-const SceneLayoutView: React.FC<SceneLayoutViewProps> = ({ scene, currentFrame, selectedProperty, lineData }) => {
+const getPropertyValueAtFrame = (frame: number, object: SceneObject, propertyName: string, defaultValue: number): number => {
+    for (const motion of object.motions) {
+        if (frame >= motion.startFrame && frame <= motion.endFrame) {
+            const prop = motion.properties[propertyName as keyof typeof motion.properties];
+            if (prop) {
+                const { keyframes, curve } = prop;
+                const duration = motion.endFrame - motion.startFrame;
+                const timeElapsed = frame - motion.startFrame;
+                const t = duration > 0 ? timeElapsed / duration : 1;
+                return getCubicBezierValue(t, keyframes[0].value, curve.p1.y, curve.p2.y, keyframes[1].value);
+            }
+        }
+    }
+    let lastValue = defaultValue;
+    for (const motion of object.motions) {
+      if(frame > motion.endFrame){
+         const prop = motion.properties[propertyName as keyof typeof motion.properties];
+         if(prop) lastValue = prop.keyframes[1].value;
+      }
+    }
+    return lastValue;
+};
+
+
+const SceneLayoutView: React.FC<{ scene: Scene; currentFrame: number; selectedProperty: SelectedPropertyPath | null; }> = ({ scene, currentFrame, selectedProperty }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log("--- RUNNING NEW SceneLayoutView RENDER LOGIC ---"); // <-- DEBUG LOG
-
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
@@ -51,31 +55,44 @@ const SceneLayoutView: React.FC<SceneLayoutViewProps> = ({ scene, currentFrame, 
 
     ctx.clearRect(0, 0, width, height);
 
-    // --- New Drawing Logic ---
-    // Find the data for the current frame in our lineData array
-    const frameData = lineData[currentFrame];
-
-    if (frameData && frameData.lines) {
-      // Iterate over the lines for the current frame and draw them
-      frameData.lines.forEach(line => {
-        if (!line.points || line.points.length < 2) {
-          return; // Cannot draw a line with less than 2 points
+    // Draw all objects in the scene
+    scene.objects.forEach(object => {
+      // --- CONDITIONAL RENDERING LOGIC ---
+      if (object.type === 'line' && object.frameData) {
+        // 1. If it's a line, draw the pre-calculated path
+        const points = object.frameData[currentFrame];
+        if (points && points.length >= 2) {
+          ctx.strokeStyle = object.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(points[0][0], points[0][1]);
+          for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i][0], points[i][1]);
+          }
+          ctx.stroke();
         }
-
-        ctx.strokeStyle = getLineColor(line.id);
-        ctx.lineWidth = 2;
+      } else {
+        // 2. Otherwise, use the original logic to draw a circle
+        const { startPosition, color, id } = object;
+        const x = getPropertyValueAtFrame(currentFrame, object, 'positionX', startPosition.x);
+        const y = getPropertyValueAtFrame(currentFrame, object, 'positionY', startPosition.y);
+        
         ctx.beginPath();
-        ctx.moveTo(line.points[0][0], line.points[0][1]);
-
-        for (let i = 1; i < line.points.length; i++) {
-          ctx.lineTo(line.points[i][0], line.points[i][1]);
-        }
+        ctx.arc(x, y, 15, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 2;
         ctx.stroke();
-      });
-    }
-    // --- End of New Drawing Logic ---
 
-  }, [lineData, currentFrame]); // Depend on lineData and currentFrame
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(id, x, y + 25);
+      }
+    });
+
+  }, [scene, currentFrame, selectedProperty]);
 
   return (
     <div ref={containerRef} className="w-full h-full">
