@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import type { Scene, EasingCurve, SelectedPropertyPath, SceneObject, Motion } from './types';
 import { MOCK_SCENE } from './data/mockData';
 import SceneLayoutView from './components/SceneLayoutView';
@@ -18,6 +18,7 @@ const COLOR_PALETTE = [
 
 function App() {
   const [scene, setScene] = useState<Scene>(MOCK_SCENE);
+  const [lineData, setLineData] = useState([]); // State for backend-generated line data
   const [selectedProperty, setSelectedProperty] = useState<SelectedPropertyPath | null>({
     objectId: MOCK_SCENE.objects[0].id,
     motionName: MOCK_SCENE.objects[0].motions[0].name,
@@ -26,6 +27,26 @@ function App() {
   const [currentFrame, setCurrentFrame] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [objectCounter, setObjectCounter] = useState(scene.objects.length + 1);
+
+  // Fetch line data from the backend
+  useEffect(() => {
+    fetch('/scene_data.json')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then(data => {
+        setLineData(data);
+        // Optionally, update scene duration based on line data
+        if (data.length > 0) {
+          setScene(prevScene => ({ ...prevScene, duration: data.length }));
+        }
+      })
+      .catch(error => console.error("Failed to fetch scene_data.json:", error));
+  }, []);
+
 
   const handleCurveUpdate = useCallback((path: SelectedPropertyPath, newCurve: EasingCurve) => {
     setScene(prevScene => {
@@ -135,6 +156,7 @@ function App() {
             scene={scene}
             currentFrame={currentFrame}
             selectedProperty={selectedProperty}
+            lineData={lineData}
            />
         </div>
         
