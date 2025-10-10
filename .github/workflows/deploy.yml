@@ -14,42 +14,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.8'
-
-    - name: Install Conda
-      uses: conda-incubator/setup-miniconda@v2
-      with:
-        miniconda-version: "latest"
-        auto-update-conda: true
-        python-version: 3.8
-        activate-environment: letr
-
-    - name: Create and activate Conda environment 'letr' and install dependencies
-      shell: bash -l {0}
-      run: |
-        conda create -n letr python=3.8 anaconda -y || true # Use || true to prevent failure if env exists
-        conda activate letr
-        conda install -c pytorch pytorch torchvision -y
-        conda install cython scipy -y
-        pip install -U 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
-        pip install docopt
-        pip install opencv-python
-        pip install kornia==0.6.2
-        pip install tensorboardX
-        pip install shapely
-        pip install Pillow numpy matplotlib
-
-
-
-    - name: Run visualization generation script
-      shell: bash -l {0}
-      run: |
-        conda activate letr
-        python generate_visualizations.py
-
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
