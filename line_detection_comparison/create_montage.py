@@ -4,55 +4,71 @@ from PIL import Image, ImageDraw, ImageFont
 
 def create_montage(input_image_path, output_dir):
     """
-    Creates a montage of original, HAWP detection, and L-CNN detection images.
+    Creates a montage of original, HAWP, L-CNN, and DeepLSD detection images.
     """
     print("--- Creating comparison montage ---")
 
-    # Load images
+    # Define the suffixes for the detection files
+    images_to_load = {
+        "SOLD2 Detection": "sold2_detection.png",
+        "ScaleLSD Detection": "scalelsd_detection.png",
+    }
+
+    loaded_images = {}
+
+    # First, load the main input image
     try:
-        original_img = Image.open(input_image_path).convert("RGB")
-        hawp_detection_img = Image.open(os.path.join(output_dir, "hawp_detection.png")).convert("RGB")
-        lcnn_detection_img = Image.open(os.path.join(output_dir, "lcnn_detection.png")).convert("RGB")
-    except FileNotFoundError as e:
-        print(f"Error loading image: {e}. Ensure all detection images exist.")
+        loaded_images["Original (with info)"] = Image.open(input_image_path).convert("RGB")
+    except FileNotFoundError:
+        print(f"Warning: Could not find main input image {input_image_path}. Aborting.")
         return
-    except Exception as e:
-        print(f"An error occurred while loading images: {e}")
+
+    # Then, load the detection images from the output directory
+    for label, filename in images_to_load.items():
+        path = os.path.join(output_dir, filename)
+        try:
+            loaded_images[label] = Image.open(path).convert("RGB")
+        except FileNotFoundError:
+            print(f"Warning: Could not find image {path}. Skipping.")
+
+    if not loaded_images:
+        print("No images found to create a montage.")
         return
 
     # Resize all images to a common height for consistent display
     target_height = 512
-    original_img = original_img.resize((int(original_img.width * target_height / original_img.height), target_height))
-    hawp_detection_img = hawp_detection_img.resize((int(hawp_detection_img.width * target_height / hawp_detection_img.height), target_height))
-    lcnn_detection_img = lcnn_detection_img.resize((int(lcnn_detection_img.width * target_height / lcnn_detection_img.height), target_height))
+    resized_images = []
+    total_width = 0
+    for label, img in loaded_images.items():
+        resized_img = img.resize((int(img.width * target_height / img.height), target_height))
+        resized_images.append((label, resized_img))
+        total_width += resized_img.width
 
     # Create a new blank image for the montage
-    total_width = original_img.width + hawp_detection_img.width + lcnn_detection_img.width
-    max_height = target_height # All images are resized to this height
-    
-    montage = Image.new('RGB', (total_width, max_height), color = (255, 255, 255)) # White background
+    max_height = target_height
+    montage = Image.new('RGB', (total_width, max_height), color=(255, 255, 255)) # White background
 
     # Paste images onto the montage
     x_offset = 0
-    montage.paste(original_img, (x_offset, 0))
-    x_offset += original_img.width
-    montage.paste(hawp_detection_img, (x_offset, 0))
-    x_offset += hawp_detection_img.width
-    montage.paste(lcnn_detection_img, (x_offset, 0))
+    for label, img in resized_images:
+        montage.paste(img, (x_offset, 0))
+        x_offset += img.width
 
     # Add labels
     draw = ImageDraw.Draw(montage)
     try:
-        font = ImageFont.truetype("arial.ttf", 30) # Try to use a common font
+        font = ImageFont.truetype("arial.ttf", 30)
     except IOError:
-        font = ImageFont.load_default() # Fallback to default font
+        font = ImageFont.load_default()
     
     text_color = (0, 0, 0) # Black text
 
-    # Labels for columns
-    draw.text((original_img.width / 2 - 50, 10), "Original", font=font, fill=text_color)
-    draw.text((original_img.width + hawp_detection_img.width / 2 - 50, 10), "HAWP Detection", font=font, fill=text_color)
-    draw.text((original_img.width + hawp_detection_img.width + lcnn_detection_img.width / 2 - 50, 10), "L-CNN Detection", font=font, fill=text_color)
+    x_offset = 0
+    for label, img in resized_images:
+        bbox = draw.textbbox((0, 0), label, font=font)
+        text_width = bbox[2] - bbox[0]
+        draw.text((x_offset + img.width / 2 - text_width / 2, 10), label, font=font, fill=text_color)
+        x_offset += img.width
 
     # Save the montage
     montage_path = os.path.join(output_dir, "comparison_grid.png")
