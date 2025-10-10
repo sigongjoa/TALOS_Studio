@@ -42,15 +42,7 @@ jobs:
         pip install shapely
         pip install Pillow numpy matplotlib
 
-    - name: Download model checkpoints
-      shell: bash -l {0}
-      run: |
-        conda activate letr
-        mkdir -p line_detection_comparison/libs/LETR/checkpoints
-        wget -O line_detection_comparison/libs/LETR/checkpoints/res101_stage2_focal.zip https://vcl.ucsd.edu/letr/checkpoints/res101/res101_stage2_focal.zip
-        unzip -o line_detection_comparison/libs/LETR/checkpoints/res101_stage2_focal.zip -d line_detection_comparison/libs/LETR/checkpoints
-        mkdir -p line_detection_comparison/libs/MangaLineExtraction_PyTorch
-        wget -O line_detection_comparison/libs/MangaLineExtraction_PyTorch/erika.pth https://huggingface.co/lllyasviel/Annotators/resolve/main/erika.pth
+
 
     - name: Run visualization generation script
       shell: bash -l {0}
