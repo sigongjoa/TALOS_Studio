@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line Detection Visualizations</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .grid-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        .grid-item { border: 1px solid #ccc; padding: 10px; text-align: center; background-color: #fff; }
+        .grid-item img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+        .header { font-weight: bold; background-color: #e0e0e0; }
+    </style>
+</head>
+<body>
+    <h1>Line Detection Visualizations</h1>
+    <div class="grid-container">
+        <div class="grid-item header">Original Image</div>
+        <div class="grid-item header">Manga Line Extraction</div>
+        <div class="grid-item header">Inverted B/W Lines</div>
+        <div class="grid-item header">Line Detection (SOLD2)</div>
+        <div class="grid-item header">Curve Detection (Canny)</div>
+
+        <div class="grid-item"><img src="image_01/original.png" alt="Original"></div>
+        <div class="grid-item"><img src="image_01/manga_lines.png" alt="Manga Lines"></div>
+        <div class="grid-item"><img src="image_01/inverted_lines.png" alt="Inverted B/W Lines"></div>
+        <div class="grid-item"><img src="image_01/sold2_detection.png" alt="Line Detection (SOLD2)"></div>
+        <div class="grid-item"><img src="image_01/canny_detection.png" alt="Curve Detection (Canny)"></div>
+
+        <div class="grid-item"><img src="image_02/original.png" alt="Original"></div>
+        <div class="grid-item"><img src="image_02/manga_lines.png" alt="Manga Lines"></div>
+        <div class="grid-item"><img src="image_02/inverted_lines.png" alt="Inverted B/W Lines"></div>
+        <div class="grid-item"><img src="image_02/sold2_detection.png" alt="Line Detection (SOLD2)"></div>
+        <div class="grid-item"><img src="image_02/canny_detection.png" alt="Curve Detection (Canny)"></div>
+
+        <div class="grid-item"><img src="image_03/original.png" alt="Original"></div>
+        <div class="grid-item"><img src="image_03/manga_lines.png" alt="Manga Lines"></div>
+        <div class="grid-item"><img src="image_03/inverted_lines.png" alt="Inverted B/W Lines"></div>
+        <div class="grid-item"><img src="image_03/sold2_detection.png" alt="Line Detection (SOLD2)"></div>
+        <div class="grid-item"><img src="image_03/canny_detection.png" alt="Curve Detection (Canny)"></div>
+
+        <div class="grid-item"><img src="image_04/original.png" alt="Original"></div>
+        <div class="grid-item"><img src="image_04/manga_lines.png" alt="Manga Lines"></div>
+        <div class="grid-item"><img src="image_04/inverted_lines.png" alt="Inverted B/W Lines"></div>
+        <div class="grid-item"><img src="image_04/sold2_detection.png" alt="Line Detection (SOLD2)"></div>
+        <div class="grid-item"><img src="image_04/canny_detection.png" alt="Curve Detection (Canny)"></div>
+
+        <div class="grid-item"><img src="image_05/original.png" alt="Original"></div>
+        <div class="grid-item"><img src="image_05/manga_lines.png" alt="Manga Lines"></div>
+        <div class="grid-item"><img src="image_05/inverted_lines.png" alt="Inverted B/W Lines"></div>
+        <div class="grid-item"><img src="image_05/sold2_detection.png" alt="Line Detection (SOLD2)"></div>
+        <div class="grid-item"><img src="image_05/canny_detection.png" alt="Curve Detection (Canny)"></div>
+
+    </div>
+</body>
+</html>
