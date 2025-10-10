@@ -10,9 +10,9 @@ This document summarizes the current implementation status of the line detection
 | **L-CNN** | ✅ Implemented | Basic detection is working. Overlay generation is pending. |
 | **DeepLSD** | ❌ Failed | Installation failed due to C++ extension build errors (pytlsd -> pybind11 -> CMake compatibility). |
 | **Deep Hough Transform** | ⏸️ Postponed | Requires CUDA for compilation. Will be revisited later. |
-| **Wireframe Transformer** | ⏳ In Progress | Environment setup complete. Inference script created. |
-| **LineArt / Sketch Models** | 📋 To-Do | Not yet implemented. |
-| **ScaleLSD** | 📋 To-Do | Not yet implemented. |
+| **Wireframe Transformer** | ✅ Implemented | Inference script working. Generates detection image. |
+| **LineArt / Sketch Models (MangaLineExtraction_PyTorch)** | ✅ Implemented | Inference script working. Generates detection image. |
+| **ScaleLSD** | ✅ Implemented | Inference script working. Generates detection image. |
 | **SOLD2** | ✅ Implemented | Inference script working. Generates detection and overlay images. |
 | **LineSegmentsDetection** | 📋 To-Do | Not yet implemented. |
 

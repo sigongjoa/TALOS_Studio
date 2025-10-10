@@ -1,42 +1,22 @@
 #!/usr/bin/env python
 
-import subprocess
 import os
+from line_detection_comparison.libs.SOLD2.run_sold2_inference import run_sold2_inference_core
 
 # Define the project base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# --- SOLD2 Configuration ---
-SOLD2_DIR = os.path.join(BASE_DIR, "libs", "SOLD2")
-SOLD2_VENV = os.path.join(SOLD2_DIR, "venv_sold2", "bin", "python")
-
-# --- Input/Output Configuration ---
-INPUT_IMAGE = os.path.join(BASE_DIR, "output", "intermediate_image.png")
-OUTPUT_DIR = os.path.join(BASE_DIR, "output")
-
-def run_sold2():
+def run_sold2_inference(input_image_path, output_image_path):
     """
-    Runs the SOLD2 inference script using its dedicated virtual environment.
+    Runs the SOLD2 inference.
     """
-    print("--- Running SOLD2 Inference ---")
-    
-    inference_script = os.path.join(SOLD2_DIR, "run_sold2_inference.py")
-
-    command = [
-        SOLD2_VENV, inference_script,
-        "--input_image", INPUT_IMAGE,
-        "--output_dir", OUTPUT_DIR,
-    ]
-    
-    try:
-        subprocess.run(command, check=True, cwd=SOLD2_DIR)
-        print("--- SOLD2 Inference Complete ---")
-    except subprocess.CalledProcessError as e:
-        print(f"Error running SOLD2: {e}")
-    except FileNotFoundError:
-        print(f"Error: Could not find the python executable for the SOLD2 environment: {SOLD2_VENV}")
+    print("--- Running SOLD2 Inference (via wrapper) ---")
+    run_sold2_inference_core(input_image_path, output_image_path)
+    print("--- SOLD2 Inference Complete (via wrapper) ---")
 
 if __name__ == "__main__":
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    run_sold2()
-    print("\nSOLD2 script finished.")
+    os.makedirs(os.path.join(BASE_DIR, "output"), exist_ok=True)
+    DEFAULT_INPUT_IMAGE = os.path.join(BASE_DIR, "input", "test_image.jpg")
+    DEFAULT_OUTPUT_IMAGE = os.path.join(BASE_DIR, "output", "sold2_detection.png")
+    run_sold2_inference(DEFAULT_INPUT_IMAGE, DEFAULT_OUTPUT_IMAGE)
+    print("\nSOLD2 wrapper script finished.")

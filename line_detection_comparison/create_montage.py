@@ -2,17 +2,25 @@ import os
 import argparse
 from PIL import Image, ImageDraw, ImageFont
 
-def create_montage(input_image_path, output_dir):
+def create_montage(input_image_path, output_dir, models_to_include):
     """
-    Creates a montage of original, HAWP, L-CNN, and DeepLSD detection images.
+    Creates a montage of original image and selected line detection results.
     """
     print("--- Creating comparison montage ---")
 
-    # Define the suffixes for the detection files
-    images_to_load = {
-        "SOLD2 Detection": "sold2_detection.png",
-        "ScaleLSD Detection": "scalelsd_detection.png",
+    # Map model names to their display labels and filenames
+    model_map = {
+        "sold2": {"label": "SOLD2 Detection", "filename": "sold2_detection.png"},
+        "scalelsd": {"label": "ScaleLSD Detection", "filename": "scalelsd_detection.png"},
+        "deeplsd": {"label": "DeepLSD Detection", "filename": "deeplsd_detection.png"},
+        "manga_line_extraction": {"label": "MangaLineExtraction", "filename": "manga_line_extraction_detection.png"},
     }
+
+    images_to_load = {}
+    for model_name in models_to_include:
+        if model_name in model_map:
+            info = model_map[model_name]
+            images_to_load[info["label"]] = info["filename"]
 
     loaded_images = {}
 
@@ -79,6 +87,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create a montage of line detection results.")
     parser.add_argument("--input", type=str, required=True, help="Path to the original input image.")
     parser.add_argument("--dir", type=str, required=True, help="Path to the output directory containing detection images.")
+    parser.add_argument("--models", nargs='*', default=[], 
+                        help="List of models to include in the montage (e.g., sold2 scalelsd deeplsd).")
     args = parser.parse_args()
 
-    create_montage(args.input, args.dir)
+    create_montage(args.input, args.dir, args.models)
