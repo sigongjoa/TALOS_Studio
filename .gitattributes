@@ -1,0 +1,2 @@
+line_detection_comparison/libs/MangaLineExtraction_PyTorch/erika.pth filter=lfs diff=lfs merge=lfs -text
+line_detection_comparison/libs/LETR/checkpoints/res101_stage2_focal.zip filter=lfs diff=lfs merge=lfs -text
