@@ -86,13 +86,6 @@ This phase involves setting up automated deployment of the generated visualizati
 2.  **Trigger:** The workflow will be triggered on pushes to the `main` or `master` branch.
 3.  **Steps:**
     *   **Checkout Code:** Get the repository code.
-    *   **Set up Python Environment:** Configure Python (e.g., `python=3.8`).
-    *   **Install Dependencies:**
-        *   Install `conda`.
-        *   Create and activate the `letr` conda environment (as per previous steps).
-        *   Install all necessary `pip` packages for `MangaLineExtraction_PyTorch`, `SOLD2`, `LETR`, `ScaleLSD`, and OpenCV.
-        *   Download `erika.pth` and `LETR` checkpoint.
-    *   **Run `generate_visualizations.py`:** Execute the main Python script to perform image processing and generate `index.html` and all output images.
     *   **Deploy to GitHub Pages:** Use an action (e.g., `peaceiris/actions-gh-pages`) to deploy the `output_base_dir` contents to GitHub Pages.
 
 #### Definition of Done (DoD) for Phase 3:
@@ -115,3 +108,27 @@ This phase involves setting up automated deployment of the generated visualizati
 ## 6. Next Steps
 
 Proceed with modifying `run_sold2.py` to expose its inference logic as a callable function.
+
+## 7. Current Status and Next Steps
+
+**Current Status:**
+- All Python scripts (`generate_visualizations.py`, modified `line_detection_comparison/run_manga_line_extraction.py`, modified `line_detection_comparison/run_sold2.py`, `test_visualizations.py`) are implemented.
+- Local `pytest` for `generate_visualizations.py` passes, indicating the Python logic works locally.
+- CI/CD workflow (`.github/workflows/deploy.yml`) is created and simplified to only deploy pre-generated content.
+- Git LFS is configured for model checkpoints (`erika.pth`, `res101_stage2_focal.zip`).
+- The latest GitHub Actions workflow run succeeded in its deployment step.
+- However, accessing the deployed GitHub Pages URL (`https://sigongjoa.github.io/TALOS_Studio/`) results in a "404 File not found" error.
+
+**Problem Identified:**
+- The "404 File not found" error strongly suggests that the `output_visualizations` directory, which contains `index.html` and all generated images, was not present or was empty in the repository when the last successful CI/CD deployment occurred. The simplified CI/CD workflow *only* deploys existing content; it does not generate it.
+
+**Next Steps (User Action Required):**
+1.  **Run `generate_visualizations.py` locally:** Execute the script on your local machine to generate the `output_visualizations` directory with all the processed images and `index.html`.
+    *   Ensure your local `letr` conda environment is activated.
+    *   Command: `source /home/zesky/miniconda/etc/profile.d/conda.sh && conda activate letr && python3 generate_visualizations.py`
+2.  **Commit and Push `output_visualizations`:** After `generate_visualizations.py` successfully runs locally, you need to add this newly generated directory to Git and push it.
+    *   Command: `git add -f output_visualizations` (The `-f` is important if `output_visualizations` is ignored by `.gitignore`)
+    *   Command: `git commit -m "feat: Add generated visualization content for GitHub Pages deployment"`
+    *   Command: `git push`
+
+This will trigger the GitHub Actions workflow again, which should then successfully deploy the generated content, making the page accessible.
