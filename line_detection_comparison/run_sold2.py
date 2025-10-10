@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-from line_detection_comparison.libs.SOLD2.run_sold2_inference import run_sold2_inference_core
+from .libs.SOLD2.run_sold2_inference import run_sold2_inference_core
 
 # Define the project base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

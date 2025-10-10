@@ -5,10 +5,10 @@ import numpy as np
 from PIL import Image
 import sys
 
-# Add SOLD2 library path to sys.path
-SOLD2_LIB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "line_detection_comparison", "libs", "SOLD2"))
-if SOLD2_LIB_PATH not in sys.path:
-    sys.path.insert(0, SOLD2_LIB_PATH)
+# Add project root to sys.path for module discovery
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 # Import helper inference functions
 from line_detection_comparison.run_manga_line_extraction import run_manga_line_extraction_inference
