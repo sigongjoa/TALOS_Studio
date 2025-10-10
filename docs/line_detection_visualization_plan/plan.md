@@ -109,26 +109,23 @@ This phase involves setting up automated deployment of the generated visualizati
 
 Proceed with modifying `run_sold2.py` to expose its inference logic as a callable function.
 
-## 7. Current Status and Next Steps
-
-**Current Status:**
-- All Python scripts (`generate_visualizations.py`, modified `line_detection_comparison/run_manga_line_extraction.py`, modified `line_detection_comparison/run_sold2.py`, `test_visualizations.py`) are implemented.
-- Local `pytest` for `generate_visualizations.py` passes, indicating the Python logic works locally.
-- CI/CD workflow (`.github/workflows/deploy.yml`) is created and simplified to only deploy pre-generated content.
-- Git LFS is configured for model checkpoints (`erika.pth`, `res101_stage2_focal.zip`).
-- The latest GitHub Actions workflow run succeeded in its deployment step.
-- However, accessing the deployed GitHub Pages URL (`https://sigongjoa.github.io/TALOS_Studio/`) results in a "404 File not found" error.
-
-**Problem Identified:**
-- The "404 File not found" error strongly suggests that the `output_visualizations` directory, which contains `index.html` and all generated images, was not present or was empty in the repository when the last successful CI/CD deployment occurred. The simplified CI/CD workflow *only* deploys existing content; it does not generate it.
-
-**Next Steps (User Action Required):**
-1.  **Run `generate_visualizations.py` locally:** Execute the script on your local machine to generate the `output_visualizations` directory with all the processed images and `index.html`.
-    *   Ensure your local `letr` conda environment is activated.
-    *   Command: `source /home/zesky/miniconda/etc/profile.d/conda.sh && conda activate letr && python3 generate_visualizations.py`
-2.  **Commit and Push `output_visualizations`:** After `generate_visualizations.py` successfully runs locally, you need to add this newly generated directory to Git and push it.
-    *   Command: `git add -f output_visualizations` (The `-f` is important if `output_visualizations` is ignored by `.gitignore`)
-    *   Command: `git commit -m "feat: Add generated visualization content for GitHub Pages deployment"`
-    *   Command: `git push`
-
 This will trigger the GitHub Actions workflow again, which should then successfully deploy the generated content, making the page accessible.
+
+**다음 구현 단계 (시각화 페이지 활성화 후):**
+시각화 페이지가 성공적으로 배포되고 액세스 가능해지면, 다음 구현 단계는 "4단계: 선-매개변수 곡선 변환 모듈"을 개발하는 것입니다.
+
+**목표:** 감지된 선분(예: SOLD2 또는 LETR의 출력)을 매개변수 곡선 표현(예: 베지어 곡선)으로 변환하는 모듈을 구현합니다. 이는 AI 기반 벡터 그래픽 생성 시스템을 향한 중요한 단계입니다.
+
+**입력:**
+*   선 감지 모델(예: SOLD2, LETR)의 출력: 각 선분은 시작점과 끝점(x1, y1, x2, y2)으로 정의됩니다.
+*   (선택 사항) 선분의 신뢰도 점수.
+
+**출력:**
+*   매개변수 곡선(예: 베지어 곡선)의 집합. 각 곡선은 제어점(예: 베지어 곡선의 경우 P0, P1, P2, P3)으로 표현됩니다.
+*   출력 형식은 JSON 또는 유사한 구조화된 데이터 형식으로, 각 곡선의 제어점과 관련 메타데이터를 포함합니다.
+
+**정의의 완성 (DoD):**
+*   주어진 선분 집합에 대해 매개변수 곡선을 성공적으로 피팅하고 출력할 수 있는 Python 모듈.
+*   모듈은 다양한 수의 선분과 다양한 기하학적 구성을 처리할 수 있어야 합니다.
+*   출력된 곡선은 입력 선분을 합리적으로 근사해야 합니다.
+*   단위 테스트가 작성되고 통과되어 모듈의 정확성과 견고성을 보장합니다.
