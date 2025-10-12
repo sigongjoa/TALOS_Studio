@@ -1,13 +1,15 @@
-name: Deploy to GitHub Pages
+name: Deploy Vectorization Showcase to GitHub Pages
 
 on:
   push:
     branches:
       - main
       - master
+    # Do not run on commits made by the action itself
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
 permissions:
-  contents: read
+  contents: write # Needed to checkout/push to the history branch
   pages: write
   id-token: write
 
@@ -19,14 +21,37 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main branch
+      - name: Checkout main branch (for source code)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for git log
+
+      - name: Checkout history branch (for data file)
+        uses: actions/checkout@v4
+        with:
+          ref: history
+          path: .history
 
       - name: Prepare deployment files
+        id: prep
         run: bash .github/scripts/generate_history.sh
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          GITHUB_SHA: ${{ github.sha }}
+          HISTORY_PATH: .history
+
+      - name: Auto-commit history file changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          repository: .history
+          commit_message: "Docs: Update deployment history [skip ci]"
+          branch: history
+          file_pattern: "docs/manga_distribution_research/deployment_history.json"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
+        with:
+          path: './output_for_deployment' # This was the critical fix
 
       - name: Deploy to GitHub Pages
         id: deployment
