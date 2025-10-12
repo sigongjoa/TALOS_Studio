@@ -32,6 +32,8 @@ jobs:
 
       - name: Prepare deployment files
         run: bash .github/scripts/generate_history.sh
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
