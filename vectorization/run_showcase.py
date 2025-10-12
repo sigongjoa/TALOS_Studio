@@ -63,7 +63,7 @@ def create_visualization_html(output_dir, image_dirs):
 
 def main():
     # --- Configuration ---
-    INPUT_DIR = "line_detection_comparison/input"
+    INPUT_DIR = "ref"
     # Let's use the main output_visualizations dir to integrate with CI/CD
     OUTPUT_DIR = "output_visualizations"
     
