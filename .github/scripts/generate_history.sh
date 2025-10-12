@@ -145,7 +145,7 @@ EOF
 
 # 4. Add the iframe for the latest result
 if [ -n "$LATEST_SHA" ]; then
-  echo "<iframe src=\"./$LATEST_SHA/\"></iframe>" >> "$OUTPUT_DIR/index.html"
+  echo "<iframe src=\"https://sigongjoa.github.io/TALOS_Studio/$LATEST_SHA/\"></iframe>" >> "$OUTPUT_DIR/index.html"
 else
   echo "<p class=\"text-center text-subtle-light dark:text-subtle-dark\">No published deployments to show yet.</p>" >> "$OUTPUT_DIR/index.html"
 fi
