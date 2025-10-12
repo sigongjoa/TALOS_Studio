@@ -6,9 +6,28 @@ set -ex
 # Define paths
 HISTORY_JSON_PATH="$HISTORY_PATH/docs/manga_distribution_research/deployment_history.json"
 
+# Determine if we are running in the context of the gh-pages branch itself
+# This is true if the current working directory is the root of the gh-pages branch checkout
+# and the script is called from the master branch checkout
+IS_GH_PAGES_BUILD=false
+if [ -d ".git" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "gh-pages" ]; then
+  IS_GH_PAGES_BUILD=true
+fi
+
 # --- Create current deployment assets ---
 SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-ASSET_DIR="./$SHORT_SHA"
+
+# If we are building the gh-pages branch, assets go directly into the root
+# Otherwise, they go into a temporary output directory for artifact upload
+if [ "$IS_GH_PAGES_BUILD" = true ]; then
+  ASSET_ROOT="."
+else
+  ASSET_ROOT="output_for_deployment"
+  rm -rf "$ASSET_ROOT"
+  mkdir -p "$ASSET_ROOT"
+fi
+
+ASSET_DIR="$ASSET_ROOT/$SHORT_SHA"
 mkdir -p "$ASSET_DIR"
 cp -a ./output_visualizations/* "$ASSET_DIR/" 2>/dev/null || echo "No visualization output to copy."
 
@@ -16,7 +35,7 @@ cp -a ./output_visualizations/* "$ASSET_DIR/" 2>/dev/null || echo "No visualizat
 if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
   echo "[publish] flag detected. Updating history file..."
   
-  COMMIT_MSG_CLEAN=$(echo "$COMMIT_MSG" | sed 's/"/\"/g' | sed 's/\\[publish\\]//g' | xargs)
+  COMMIT_MSG_CLEAN=$(echo "$COMMIT_MSG" | sed 's/"/\"/g' | sed 's/\[publish\]//g' | xargs)
   TIMESTAMP=$(git log -1 --format=%ct -- "$GITHUB_SHA")
 
   # Create a new JSON object for the current entry
@@ -45,8 +64,8 @@ fi
 
 # Start writing the HTML file
 TIMESTAMP_COMMENT="<!-- Updated at: $(date -u) -->"
-echo "$TIMESTAMP_COMMENT" > "./index.html"
-cat <<'EOF' >> "./index.html"
+echo "$TIMESTAMP_COMMENT" > "$ASSET_ROOT/index.html"
+cat <<'EOF' >> "$ASSET_ROOT/index.html"
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"/>
@@ -108,7 +127,7 @@ LATEST_SHA=$(jq -r '.[0].hash // ""' "$HISTORY_JSON_PATH")
 jq -c '.[]' "$HISTORY_JSON_PATH" | while read -r entry; do
     HASH=$(echo "$entry" | jq -r '.hash')
     MSG=$(echo "$entry" | jq -r '.message')
-    cat <<EOT >> "./index.html"
+    cat <<EOT >> "$ASSET_ROOT/index.html"
 <li class="p-4 bg-background-light dark:bg-background-dark rounded-md flex items-center justify-between hover:shadow-lg transition-shadow duration-300">
 <div class="flex items-center">
 <span class="material-icons text-green-500 mr-3">check_circle</span>
@@ -122,7 +141,7 @@ EOT
 done
 
 # Write the rest of the HTML, including the iframe
-cat <<EOF >> "./index.html"
+cat <<EOF >> "$ASSET_ROOT/index.html"
 </ul>
 </div>
 <div class="mt-12">
