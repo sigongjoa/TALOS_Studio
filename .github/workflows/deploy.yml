@@ -20,15 +20,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main branch
+      - name: Checkout main branch (for source code)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Fetch all history for git log
+
+      - name: Checkout history branch (for data file)
+        uses: actions/checkout@v4
+        with:
+          ref: history
+          path: .history
 
       - name: Prepare deployment files
         run: bash .github/scripts/generate_history.sh
         env:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
+          HISTORY_PATH: .history
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

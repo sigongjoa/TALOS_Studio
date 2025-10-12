@@ -3,7 +3,7 @@
 # Exit on error and print commands
 set -ex
 
-HISTORY_FILE="docs/manga_distribution_research/deployment_history.json"
+HISTORY_JSON_PATH="$HISTORY_PATH/docs/manga_distribution_research/deployment_history.json"
 OUTPUT_DIR="output_for_deployment"
 
 # Always create a clean output directory
@@ -15,38 +15,48 @@ SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
 mkdir -p "$OUTPUT_DIR/$SHORT_SHA"
 cp -a ./output_visualizations/* "$OUTPUT_DIR/$SHORT_SHA/" 2>/dev/null || echo "No visualization output to copy."
 
+
 # --- Check for [publish] flag and update history file ---
 if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
   echo "[publish] flag detected. Updating history file..."
   
-  COMMIT_MSG_CLEAN=$(echo "$COMMIT_MSG" | sed 's/"/\"/g' | sed 's/\\[publish\\]//g' | xargs)
+  COMMIT_MSG_CLEAN=$(echo "$COMMIT_MSG" | sed 's/"/\"/g' | sed 's/\\\[publish\\\\]//g' | xargs)
   TIMESTAMP=$(git log -1 --format=%ct -- "$GITHUB_SHA")
 
-  # Create a new JSON object for the current entry
   NEW_ENTRY=$(jq -n \
                 --arg hash "$SHORT_SHA" \
                 --arg msg "$COMMIT_MSG_CLEAN" \
                 --arg ts "$TIMESTAMP" \
                 '{hash: $hash, message: $msg, timestamp: $ts}')
 
-  # Add new entry to the history file (prepend to the array)
-  jq --argjson new_entry "$NEW_ENTRY" '[$new_entry] + .' "$HISTORY_FILE" > tmp.json && mv tmp.json "$HISTORY_FILE"
+  # Create history file if it doesn't exist
+  if [ ! -f "$HISTORY_JSON_PATH" ]; then
+    echo "[]" > "$HISTORY_JSON_PATH"
+  fi
 
-  # --- Commit and push the updated history file ---
+  jq --argjson new_entry "$NEW_ENTRY" '[$new_entry] + .' "$HISTORY_JSON_PATH" > tmp.json && mv tmp.json "$HISTORY_JSON_PATH"
+
+  # --- Commit and push the updated history file to the history branch ---
+  cd "$HISTORY_PATH"
   git config --global user.name 'github-actions[bot]'
   git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-  git add "$HISTORY_FILE"
-  # Check if there are changes to commit
+  git add .
   if ! git diff-index --quiet HEAD; then
-    git commit -m "Docs: Update deployment history [skip ci]"
-    git push
+    git commit -m "Docs: Update deployment history for $SHORT_SHA [skip ci]"
+    git push origin history
   else
     echo "History file is already up to date."
   fi
+  cd "$OLDPWD" # Go back to the original directory
 fi
 
 # --- Generate index.html from the latest history file ---
-echo "Generating index.html from $HISTORY_FILE..."
+echo "Generating index.html from $HISTORY_JSON_PATH..."
+
+# Create an empty history file for the next step if it doesn't exist
+if [ ! -f "$HISTORY_JSON_PATH" ]; then
+  echo "[]" > "$HISTORY_JSON_PATH"
+fi
 
 # 1. Write top part of the HTML
 cat <<'EOF' > "$OUTPUT_DIR/index.html"
@@ -107,8 +117,8 @@ cat <<'EOF' > "$OUTPUT_DIR/index.html"
 EOF
 
 # 2. Generate the <ul> list dynamically from JSON
-LATEST_SHA=$(jq -r '.[0].hash // ""' "$HISTORY_FILE")
-jq -c '.[]' "$HISTORY_FILE" | while read -r entry; do
+LATEST_SHA=$(jq -r '.[0].hash // ""' "$HISTORY_JSON_PATH")
+jq -c '.[]' "$HISTORY_JSON_PATH" | while read -r entry; do
     HASH=$(echo "$entry" | jq -r '.hash')
     MSG=$(echo "$entry" | jq -r '.message')
     cat <<EOT >> "$OUTPUT_DIR/index.html"
