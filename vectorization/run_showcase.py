@@ -35,21 +35,25 @@ def create_visualization_html(output_dir, image_dirs):
         html_content += f'''
         <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
             <h2 class="text-2xl font-bold mb-4">{base_name}</h2>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 text-center">
                 <div>
-                    <h3 class="font-semibold">Original</h3>
+                    <h3 class="font-semibold">1. Original</h3>
                     <img src="{base_name}/original.png" alt="Original" class="inline-block w-full h-auto border"/>
                 </div>
                 <div>
-                    <h3 class="font-semibold">Line Art (Input)</h3>
+                    <h3 class="font-semibold">2. Polygons from Original</h3>
+                    <img src="{base_name}/polygons_from_original.png" alt="Polygons from Original" class="inline-block w-full h-auto border"/>
+                </div>
+                <div>
+                    <h3 class="font-semibold">3. Line Art</h3>
                     <img src="{base_name}/line_art.png" alt="Line Art" class="inline-block w-full h-auto border"/>
                 </div>
                 <div>
-                    <h3 class="font-semibold">Simplified Polygons</h3>
-                    <img src="{base_name}/polygons.png" alt="Polygons" class="inline-block w-full h-auto border"/>
+                    <h3 class="font-semibold">4. Polygons from Line Art</h3>
+                    <img src="{base_name}/polygons_from_line_art.png" alt="Polygons from Line Art" class="inline-block w-full h-auto border"/>
                 </div>
                 <div>
-                    <h3 class="font-semibold">Final Vector (SVG)</h3>
+                    <h3 class="font-semibold">5. Final Vector (SVG)</h3>
                     <img src="{base_name}/vector.svg" alt="Vector SVG" class="inline-block w-full h-auto border"/>
                 </div>
             </div>
@@ -64,7 +68,6 @@ def create_visualization_html(output_dir, image_dirs):
 def main():
     # --- Configuration ---
     INPUT_DIR = "ref"
-    # Let's use the main output_visualizations dir to integrate with CI/CD
     OUTPUT_DIR = "output_visualizations"
     
     # Clean up previous results
@@ -79,51 +82,54 @@ def main():
         print(f"--- Processing {image_file} ---")
         base_name = os.path.splitext(image_file)[0]
         
-        # Create a dedicated output folder for this image
         image_output_dir = os.path.join(OUTPUT_DIR, base_name)
         os.makedirs(image_output_dir, exist_ok=True)
-        processed_image_dirs.append(image_output_dir)
+        processed_image_dirs.append(base_name)
 
         original_img_path = os.path.join(INPUT_DIR, image_file)
         line_art_path = os.path.join(image_output_dir, "line_art.png")
 
-        # --- Step 1: Prepare Input (Manga Line Extraction) ---
-        print("Step 1: Extracting lines...")
-        run_manga_line_extraction_inference(original_img_path, line_art_path)
+        # --- Step 1: Process Original Image ---
+        print("Step 1: Processing Original Image...")
         shutil.copy(original_img_path, os.path.join(image_output_dir, "original.png"))
+        original_image_for_vec = cv2.imread(original_img_path)
+        h, w, _ = original_image_for_vec.shape
+        
+        orig_contours = find_contours(original_img_path)
+        simplified_from_orig = [simplify_polygon(c, 0.015) for c in orig_contours]
+        
+        poly_vis_orig = np.zeros((h, w, 3), dtype=np.uint8)
+        cv2.drawContours(poly_vis_orig, [np.array(p, dtype=np.int32) for p in simplified_from_orig if p], -1, (0, 255, 0), 1)
+        cv2.imwrite(os.path.join(image_output_dir, "polygons_from_original.png"), poly_vis_orig)
 
-        # --- Step 2: Run Vectorization Pipeline ---
-        print("Step 2: Running vectorization pipeline...")
-        input_image_for_vec = cv2.imread(line_art_path)
-        height, width, _ = input_image_for_vec.shape
-
-        contours = find_contours(line_art_path)
-        if not contours:
-            print("No contours found in line art. Skipping vectorization.")
+        # --- Step 2: Process Line Art Image ---
+        print("Step 2: Extracting Lines and Processing Line Art...")
+        run_manga_line_extraction_inference(original_img_path, line_art_path)
+        
+        line_art_contours = find_contours(line_art_path)
+        if not line_art_contours:
+            print("No contours found in line art. Skipping further vectorization.")
             continue
 
         all_bezier_curves = []
-        all_simplified_polygons = []
-        for contour in contours:
+        simplified_from_line_art = []
+        for contour in line_art_contours:
             simplified = simplify_polygon(contour, epsilon_ratio=0.015)
             if len(simplified) < 2:
                 continue
-            all_simplified_polygons.append(simplified)
+            simplified_from_line_art.append(simplified)
             
             nodes = np.asfortranarray(np.array(simplified).T)
             curves = fit_curve(nodes.T, max_error=1.0)
             all_bezier_curves.extend(curves)
 
-        # --- Step 3: Save intermediate and final results ---
-        print("Step 3: Saving results...")
-        # Save simplified polygons visualization
-        poly_vis_img = np.zeros((height, width, 3), dtype=np.uint8)
-        drawable_polygons = [np.array(p, dtype=np.int32) for p in all_simplified_polygons]
-        cv2.drawContours(poly_vis_img, drawable_polygons, -1, (0, 255, 0), 1)
-        cv2.imwrite(os.path.join(image_output_dir, "polygons.png"), poly_vis_img)
+        # --- Step 3: Save final results ---
+        print("Step 3: Saving final results...")
+        poly_vis_line_art = np.zeros((h, w, 3), dtype=np.uint8)
+        cv2.drawContours(poly_vis_line_art, [np.array(p, dtype=np.int32) for p in simplified_from_line_art if p], -1, (0, 255, 0), 1)
+        cv2.imwrite(os.path.join(image_output_dir, "polygons_from_line_art.png"), poly_vis_line_art)
 
-        # Save final SVG
-        save_svg(all_bezier_curves, os.path.join(image_output_dir, "vector.svg"), width, height)
+        save_svg(all_bezier_curves, os.path.join(image_output_dir, "vector.svg"), width=w, height=h)
 
     # --- Step 4: Create final showcase HTML ---
     print("Step 4: Creating showcase HTML...")
