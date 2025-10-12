@@ -14,7 +14,13 @@ if [ "$CURRENT_BRANCH" = "gh-pages" ]; then
   HISTORY_JSON_PATH="docs/manga_distribution_research/deployment_history.json"
 else
   # Assume master branch context, where .history is checked out
+  if [ -d ".history" ]; then
+  # Running in master branch context, .history is checked out
   HISTORY_JSON_PATH=".history/docs/manga_distribution_research/deployment_history.json"
+else
+  # Running in gh-pages branch context
+  HISTORY_JSON_PATH="docs/manga_distribution_research/deployment_history.json"
+fi
 fi
 
 GH_PAGES_ROOT="."
