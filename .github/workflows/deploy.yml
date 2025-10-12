@@ -100,7 +100,7 @@ jobs:
             COMMIT_HASH=$(basename "$dir")
             # Only process if it looks like a short commit hash
             if [[ "$COMMIT_HASH" =~ ^[a-f0-9]{7}$ ]]; then
-              COMMIT_MSG=$(git log --format=%B -n 1 -- "$COMMIT_HASH")
+              COMMIT_MSG=$(git log --format=%s -n 1 -- "$COMMIT_HASH")
               cat <<EOT >> ./gh-pages/index.html
             <li class="p-4 bg-background-light dark:bg-background-dark rounded-md flex items-center justify-between hover:shadow-lg transition-shadow duration-300">
             <div class="flex items-center">
