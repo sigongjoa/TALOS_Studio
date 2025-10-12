@@ -1,6 +1,3 @@
-# --- Standalone Vectorization Pipeline ---
-# This script combines all necessary functions to avoid python path issues.
-
 import os
 import shutil
 import numpy as np
@@ -143,7 +140,6 @@ def run_manga_line_extraction_inference(input_image_path, output_image_path):
 
 # --- 2. HTML Generation Function ---
 def create_visualization_html(output_dir, image_dirs):
-    """Generates the final index.html to display all results."""
     html_content = """
     <!DOCTYPE html>
     <html lang="en"><head>
@@ -161,25 +157,17 @@ def create_visualization_html(output_dir, image_dirs):
         html_content += f'''
         <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
             <h2 class="text-2xl font-bold mb-4">{base_name}</h2>
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 text-center">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                 <div>
                     <h3 class="font-semibold">1. Original</h3>
                     <img src="{base_name}/original.png" alt="Original" class="inline-block w-full h-auto border"/>
                 </div>
                 <div>
-                    <h3 class="font-semibold">2. Polygons from Original</h3>
-                    <img src="{base_name}/polygons_from_original.png" alt="Polygons from Original" class="inline-block w-full h-auto border"/>
-                </div>
-                <div>
-                    <h3 class="font-semibold">3. Line Art</h3>
+                    <h3 class="font-semibold">2. Line Art (Input)</h3>
                     <img src="{base_name}/line_art.png" alt="Line Art" class="inline-block w-full h-auto border"/>
                 </div>
                 <div>
-                    <h3 class="font-semibold">4. Polygons from Line Art</h3>
-                    <img src="{base_name}/polygons_from_line_art.png" alt="Polygons from Line Art" class="inline-block w-full h-auto border"/>
-                </div>
-                <div>
-                    <h3 class="font-semibold">5. Final Vector (SVG)</h3>
+                    <h3 class="font-semibold">3. Final Vector (SVG)</h3>
                     <img src="{base_name}/vector.svg" alt="Vector SVG" class="inline-block w-full h-auto border"/>
                 </div>
             </div>
