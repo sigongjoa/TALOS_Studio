@@ -1,8 +1,11 @@
 #!/bin/bash
-set -x # Enable Debug Mode
 
-# Exit on error
-set -e
+# Exit on error and print commands
+set -ex
+
+# --- Pre-fetch all commit data ---
+GIT_LOG_DATA=$(mktemp)
+git log --all --pretty=format:"%h|%ct|%s" > "$GIT_LOG_DATA"
 
 # Ensure the gh-pages directory exists
 mkdir -p ./gh-pages
@@ -10,23 +13,16 @@ mkdir -p ./gh-pages
 # --- Create current deployment ---
 SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
 mkdir -p ./gh-pages/$SHORT_SHA
-# Use cp -a to preserve attributes, and handle case where output_visualizations might be empty
 cp -a ./output_visualizations/* ./gh-pages/$SHORT_SHA/ 2>/dev/null || echo "No visualization output to copy."
 
-
 # --- Find all valid deployments ---
-# Create an array of valid commit hash directories
 DEPLOYMENTS=()
 for dir in ./gh-pages/*; do
   if [ -d "$dir" ]; then
     COMMIT_HASH=$(basename "$dir")
-    # Check if the directory name is a 7-char hex string
-    if [[ "$COMMIT_HASH" =~ ^[a-f0-9]{7}$ ]]; then
-      # Check if this hash exists in the git history to be sure
-      if git cat-file -e "$COMMIT_HASH" 2>/dev/null;
-        then
-        DEPLOYMENTS+=("$COMMIT_HASH")
-      fi
+    # Check if the hash from the directory name exists in our pre-fetched log
+    if grep -q "^$COMMIT_HASH|" "$GIT_LOG_DATA"; then
+      DEPLOYMENTS+=("$COMMIT_HASH")
     fi
   fi
 done
@@ -35,17 +31,12 @@ done
 LATEST_SHA=""
 LATEST_TIMESTAMP=0
 for HASH in "${DEPLOYMENTS[@]}"; do
-  TIMESTAMP=$(git log -1 --format=%ct -- "$HASH")
-  if [ -z "$TIMESTAMP" ]; then
-    echo "Warning: Could not find timestamp for commit $HASH. Skipping."
-    continue
-  fi
+  TIMESTAMP=$(grep "^$HASH|" "$GIT_LOG_DATA" | cut -d'|' -f2)
   if [ "$TIMESTAMP" -gt "$LATEST_TIMESTAMP" ]; then
     LATEST_TIMESTAMP=$TIMESTAMP
     LATEST_SHA=$HASH
   fi
 done
-
 
 # --- Generate index.html ---
 
@@ -108,17 +99,15 @@ cat <<'EOF' > ./gh-pages/index.html
 EOF
 
 # 2. Generate the <ul> list dynamically
-# Create a temporary file to hold sortable data
 SORTABLE_FILE=$(mktemp)
 for HASH in "${DEPLOYMENTS[@]}"; do
-    # format: <timestamp>:<hash> 
-    echo "$(git log -1 --format=%ct:%H -- "$HASH")" >> "$SORTABLE_FILE"
+    grep "^$HASH|" "$GIT_LOG_DATA" | awk -F'|' '{print $2 ":" $1}' >> "$SORTABLE_FILE"
 done
 
-# Sort numerically in reverse (newest first) and read just the hash
-cat "$SORTABLE_FILE" | sort -t: -k1 -nr | cut -d: -f2 | while read -r FULL_HASH; do
-    HASH=$(echo $FULL_HASH | cut -c1-7)
-    COMMIT_MSG=$(git log -1 --format=%s -- "$HASH")
+cat "$SORTABLE_FILE" | sort -t: -k1 -nr | cut -d: -f2 | while read -r HASH;
+do
+    COMMIT_DATA=$(grep "^$HASH|" "$GIT_LOG_DATA")
+    COMMIT_MSG=$(echo "$COMMIT_DATA" | cut -d'|' -f3)
     cat <<EOT >> ./gh-pages/index.html
 <li class="p-4 bg-background-light dark:bg-background-dark rounded-md flex items-center justify-between hover:shadow-lg transition-shadow duration-300">
 <div class="flex items-center">
@@ -132,6 +121,7 @@ cat "$SORTABLE_FILE" | sort -t: -k1 -nr | cut -d: -f2 | while read -r FULL_HASH;
 EOT
 done
 rm "$SORTABLE_FILE"
+rm "$GIT_LOG_DATA"
 
 # 3. Write middle part of HTML
 cat <<'EOF' >> ./gh-pages/index.html
