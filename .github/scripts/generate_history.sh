@@ -4,14 +4,8 @@
 set -ex
 
 # Define paths
-GH_PAGES_ROOT="."
-if [ -d ".history" ]; then
-  # Running in master branch context, .history is checked out
-  HISTORY_JSON_PATH=".history/docs/manga_distribution_research/deployment_history.json"
-else
-  # Running in gh-pages branch context
-  HISTORY_JSON_PATH="docs/manga_distribution_research/deployment_history.json"
-fi
+HISTORY_ROOT=".history"
+HISTORY_JSON_PATH="$HISTORY_ROOT/docs/manga_distribution_research/deployment_history.json"
 
 # --- Create current deployment assets ---
 SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
@@ -23,7 +17,7 @@ cp -a ./output_visualizations/* "$ASSET_DIR/" 2>/dev/null || echo "No visualizat
 if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
   echo "[publish] flag detected. Updating history file..."
   
-  COMMIT_MSG_CLEAN=$(echo "$COMMIT_MSG" | sed 's/"/\\"/g' | sed 's/\[publish\]//g' | xargs)
+  COMMIT_MSG_CLEAN=$(echo "$COMMIT_MSG" | sed 's/"/\"/g' | sed 's/\\[publish\\]//g' | xargs)
   TIMESTAMP=$(git log -1 --format=%ct -- "$GITHUB_SHA")
 
   # Create a new JSON object for the current entry
@@ -40,7 +34,7 @@ if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
   fi
 
   # Add new entry to the history file
-  jq --argjson new_entry "$NEW_ENTRY" '[$new_entry] + .' "$HISTORY_JSON_PATH" > tmp.json && mv tmp.json "$HISTORY_JSON_PATH"
+  /home/zesky/miniconda/envs/vectorization/bin/jq --argjson new_entry "$NEW_ENTRY" '[$new_entry] + .' "$HISTORY_JSON_PATH" > tmp.json && mv tmp.json "$HISTORY_JSON_PATH"
 fi
 
 # --- Generate index.html from the history file ---
@@ -113,10 +107,10 @@ cat <<'EOF' >> "$HISTORY_ROOT/index.html"
 EOF
 
 # 2. Generate the <ul> list dynamically from JSON
-LATEST_SHA=$(jq -r '.[0].hash // ""' "$HISTORY_JSON_PATH")
-jq -c '.[]' "$HISTORY_JSON_PATH" | while read -r entry; do
-    HASH=$(echo "$entry" | jq -r '.hash')
-    MSG=$(echo "$entry" | jq -r '.message')
+LATEST_SHA=$(/home/zesky/miniconda/envs/vectorization/bin/jq -r '.[0].hash // ""' "$HISTORY_JSON_PATH")
+/home/zesky/miniconda/envs/vectorization/bin/jq -c '.[]' "$HISTORY_JSON_PATH" | while read -r entry; do
+    HASH=$(echo "$entry" | /home/zesky/miniconda/envs/vectorization/bin/jq -r '.hash')
+    MSG=$(echo "$entry" | /home/zesky/miniconda/envs/vectorization/bin/jq -r '.message')
     cat <<EOT >> "$HISTORY_ROOT/index.html"
 <li class="p-4 bg-background-light dark:bg-background-dark rounded-md flex items-center justify-between hover:shadow-lg transition-shadow duration-300">
 <div class="flex items-center">
