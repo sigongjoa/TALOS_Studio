@@ -1,15 +1,13 @@
-name: Deploy Vectorization Showcase to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches:
       - main
       - master
-    # Do not run on commits made by the action itself
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
 permissions:
-  contents: write # Needed to checkout/push to the history branch
+  contents: read
   pages: write
   id-token: write
 
@@ -21,33 +19,15 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main branch (for source code)
+      - name: Checkout main branch
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Fetch all history for git log
-
-      - name: Checkout history branch (for data file)
-        uses: actions/checkout@v4
-        with:
-          ref: history
-          path: .history
 
       - name: Prepare deployment files
-        id: prep
         run: bash .github/scripts/generate_history.sh
-        env:
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
-          GITHUB_SHA: ${{ github.sha }}
-          HISTORY_PATH: .history
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
-        with:
-          name: github-pages-${{ github.run_id }}
-          path: './output_for_deployment'
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          artifact_name: github-pages-${{ github.run_id }}
