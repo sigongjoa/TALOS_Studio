@@ -38,19 +38,19 @@ def create_visualization_html(output_dir, image_dirs):
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
                 <div>
                     <h3 class="font-semibold">Original</h3>
-                    <img src="{img_dir}/original.png" alt="Original" class="inline-block w-full h-auto border"/>
+                    <img src="{base_name}/original.png" alt="Original" class="inline-block w-full h-auto border"/>
                 </div>
                 <div>
                     <h3 class="font-semibold">Line Art (Input)</h3>
-                    <img src="{img_dir}/line_art.png" alt="Line Art" class="inline-block w-full h-auto border"/>
+                    <img src="{base_name}/line_art.png" alt="Line Art" class="inline-block w-full h-auto border"/>
                 </div>
                 <div>
                     <h3 class="font-semibold">Simplified Polygons</h3>
-                    <img src="{img_dir}/polygons.png" alt="Polygons" class="inline-block w-full h-auto border"/>
+                    <img src="{base_name}/polygons.png" alt="Polygons" class="inline-block w-full h-auto border"/>
                 </div>
                 <div>
                     <h3 class="font-semibold">Final Vector (SVG)</h3>
-                    <img src="{img_dir}/vector.svg" alt="Vector SVG" class="inline-block w-full h-auto border"/>
+                    <img src="{base_name}/vector.svg" alt="Vector SVG" class="inline-block w-full h-auto border"/>
                 </div>
             </div>
         </div>
