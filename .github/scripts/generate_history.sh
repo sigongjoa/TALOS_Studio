@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x # Enable Debug Mode
 
 # Exit on error
 set -e
