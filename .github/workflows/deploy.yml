@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - master
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
 permissions:
   contents: write # Needed to checkout the gh-pages branch and get commit info
@@ -24,12 +25,6 @@ jobs:
         with:
           fetch-depth: 0 # Fetch all history for git log
 
-      - name: Checkout gh-pages branch for history
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: gh-pages
-
       - name: Prepare deployment files
         run: bash .github/scripts/generate_history.sh
         env:
@@ -38,7 +33,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './gh-pages'
+          path: './output_for_deployment'
 
   deploy:
     environment:

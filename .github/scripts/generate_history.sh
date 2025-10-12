@@ -3,54 +3,53 @@
 # Exit on error and print commands
 set -ex
 
-# --- Check for [publish] flag from environment variable ---
-PUBLISH_TOC=false
+HISTORY_FILE="docs/manga_distribution_research/deployment_history.json"
+OUTPUT_DIR="output_for_deployment"
+
+# Always create a clean output directory
+rm -rf "$OUTPUT_DIR"
+mkdir -p "$OUTPUT_DIR"
+
+# --- Create current deployment assets ---
+SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+mkdir -p "$OUTPUT_DIR/$SHORT_SHA"
+cp -a ./output_visualizations/* "$OUTPUT_DIR/$SHORT_SHA/" 2>/dev/null || echo "No visualization output to copy."
+
+# --- Check for [publish] flag and update history file ---
 if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
-  PUBLISH_TOC=true
+  echo "[publish] flag detected. Updating history file..."
+  
+  COMMIT_MSG_CLEAN=$(echo "$COMMIT_MSG" | sed 's/"/\"/g' | sed 's/\\[publish\\]//g' | xargs)
+  TIMESTAMP=$(git log -1 --format=%ct -- "$GITHUB_SHA")
+
+  # Create a new JSON object for the current entry
+  NEW_ENTRY=$(jq -n \
+                --arg hash "$SHORT_SHA" \
+                --arg msg "$COMMIT_MSG_CLEAN" \
+                --arg ts "$TIMESTAMP" \
+                '{hash: $hash, message: $msg, timestamp: $ts}')
+
+  # Add new entry to the history file (prepend to the array)
+  jq --argjson new_entry "$NEW_ENTRY" '[$new_entry] + .' "$HISTORY_FILE" > tmp.json && mv tmp.json "$HISTORY_FILE"
+
+  # --- Commit and push the updated history file ---
+  git config --global user.name 'github-actions[bot]'
+  git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+  git add "$HISTORY_FILE"
+  # Check if there are changes to commit
+  if ! git diff-index --quiet HEAD; then
+    git commit -m "Docs: Update deployment history [skip ci]"
+    git push
+  else
+    echo "History file is already up to date."
+  fi
 fi
 
-# --- Pre-fetch all commit data ---
-GIT_LOG_DATA=$(mktemp)
-git log --all --pretty=format:"%h|%ct|%s" > "$GIT_LOG_DATA"
-
-# Ensure the gh-pages directory exists
-mkdir -p ./gh-pages
-
-# --- Create current deployment ---
-SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-mkdir -p ./gh-pages/$SHORT_SHA
-cp -a ./output_visualizations/* ./gh-pages/$SHORT_SHA/ 2>/dev/null || echo "No visualization output to copy."
-
-
-if [ "$PUBLISH_TOC" = true ]; then
-  echo "[publish] flag detected. Regenerating index.html..."
-
-  # --- Find all valid deployments ---
-  DEPLOYMENTS=()
-  for dir in ./gh-pages/*; do
-    if [ -d "$dir" ]; then
-      COMMIT_HASH=$(basename "$dir")
-      if grep -q "^$COMMIT_HASH|" "$GIT_LOG_DATA"; then
-        DEPLOYMENTS+=("$COMMIT_HASH")
-      fi
-    fi
-  done
-
-  # --- Determine latest deployment ---
-  LATEST_SHA=""
-  LATEST_TIMESTAMP=0
-  for HASH in "${DEPLOYMENTS[@]}"; do
-    TIMESTAMP=$(grep "^$HASH|" "$GIT_LOG_DATA" | cut -d'|' -f2)
-    if [ "$TIMESTAMP" -gt "$LATEST_TIMESTAMP" ]; then
-      LATEST_TIMESTAMP=$TIMESTAMP
-      LATEST_SHA=$HASH
-    fi
-  done
-
-  # --- Generate index.html ---
+# --- Generate index.html from the latest history file ---
+echo "Generating index.html from $HISTORY_FILE..."
 
 # 1. Write top part of the HTML
-cat <<'EOF' > ./gh-pages/index.html
+cat <<'EOF' > "$OUTPUT_DIR/index.html"
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"/>
@@ -107,32 +106,26 @@ cat <<'EOF' > ./gh-pages/index.html
 <ul class="space-y-3">
 EOF
 
-  # 2. Generate the <ul> list dynamically
-  SORTABLE_FILE=$(mktemp)
-  for HASH in "${DEPLOYMENTS[@]}"; do
-      grep "^$HASH|" "$GIT_LOG_DATA" | awk -F'|' '{print $2 ":" $1}' >> "$SORTABLE_FILE"
-  done
-
-  cat "$SORTABLE_FILE" | sort -t: -k1 -nr | cut -d: -f2 | while read -r HASH;
-  do
-      COMMIT_DATA=$(grep "^$HASH|" "$GIT_LOG_DATA")
-      COMMIT_MSG=$(echo "$COMMIT_DATA" | cut -d'|' -f3)
-      cat <<EOT >> ./gh-pages/index.html
+# 2. Generate the <ul> list dynamically from JSON
+LATEST_SHA=$(jq -r '.[0].hash // ""' "$HISTORY_FILE")
+jq -c '.[]' "$HISTORY_FILE" | while read -r entry; do
+    HASH=$(echo "$entry" | jq -r '.hash')
+    MSG=$(echo "$entry" | jq -r '.message')
+    cat <<EOT >> "$OUTPUT_DIR/index.html"
 <li class="p-4 bg-background-light dark:bg-background-dark rounded-md flex items-center justify-between hover:shadow-lg transition-shadow duration-300">
 <div class="flex items-center">
 <span class="material-icons text-green-500 mr-3">check_circle</span>
 <div>
 <a class="font-mono text-lg text-primary hover:underline" href="./$HASH/">$HASH</a>
-<p class="text-sm text-subtle-light dark:text-subtle-dark">$COMMIT_MSG</p>
+<p class="text-sm text-subtle-light dark:text-subtle-dark">$MSG</p>
 </div>
 </div>
 </li>
 EOT
-  done
-  rm "$SORTABLE_FILE"
+done
 
-  # 3. Write middle part of HTML
-cat <<'EOF' >> ./gh-pages/index.html
+# 3. Write middle part of HTML
+cat <<'EOF' >> "$OUTPUT_DIR/index.html"
 </ul>
 </div>
 <div class="mt-12">
@@ -140,24 +133,18 @@ cat <<'EOF' >> ./gh-pages/index.html
 <div class="bg-card-light dark:bg-card-dark p-1 sm:p-2 rounded-lg shadow-md border border-border-light dark:border-border-dark">
 EOF
 
-  # 4. Add the iframe for the latest result
-  if [ -n "$LATEST_SHA" ]; then
-    echo "<iframe src=\"./$LATEST_SHA/\"></iframe>" >> ./gh-pages/index.html
-  else
-    echo "<p class=\"text-center text-subtle-light dark:text-subtle-dark\">No deployments to show yet.</p>" >> ./gh-pages/index.html
-  fi
+# 4. Add the iframe for the latest result
+if [ -n "$LATEST_SHA" ]; then
+  echo "<iframe src=\"./$LATEST_SHA/\"></iframe>" >> "$OUTPUT_DIR/index.html"
+else
+  echo "<p class=\"text-center text-subtle-light dark:text-subtle-dark\">No published deployments to show yet.</p>" >> "$OUTPUT_DIR/index.html"
+fi
 
-  # 5. Write the final part of the HTML
-cat <<'EOF' >> ./gh-pages/index.html
+# 5. Write the final part of the HTML
+cat <<'EOF' >> "$OUTPUT_DIR/index.html"
 </div>
 </div>
 </main>
 </div>
 </body></html>
 EOF
-
-else
-  echo "No [publish] flag. Skipping index.html regeneration."
-fi
-
-rm "$GIT_LOG_DATA"
