@@ -57,13 +57,12 @@ fi
 # --- 3. Generate index.html from the history file ---
 echo "Generating index.html from $HISTORY_JSON_PATH..."
 
-# Create an empty history file for the next step if it doesn't exist
-if [ ! -f "$HISTORY_JSON_PATH" ]; then
-  echo "[]" > "$HISTORY_JSON_PATH"
-fi
+# Add a cache-busting timestamp
+TIMESTAMP_COMMENT="<!-- Updated at: $(date -u) -->"
 
-# Start writing the HTML file
-cat <<'EOF' > "$OUTPUT_DIR/index.html"
+# 1. Write top part of the HTML, starting with the timestamp
+echo "$TIMESTAMP_COMMENT" > "$OUTPUT_DIR/index.html"
+cat <<'EOF' >> "$OUTPUT_DIR/index.html"
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"/>
