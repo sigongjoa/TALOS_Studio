@@ -36,6 +36,10 @@ LATEST_SHA=""
 LATEST_TIMESTAMP=0
 for HASH in "${DEPLOYMENTS[@]}"; do
   TIMESTAMP=$(git log -1 --format=%ct -- "$HASH")
+  if [ -z "$TIMESTAMP" ]; then
+    echo "Warning: Could not find timestamp for commit $HASH. Skipping."
+    continue
+  fi
   if [ "$TIMESTAMP" -gt "$LATEST_TIMESTAMP" ]; then
     LATEST_TIMESTAMP=$TIMESTAMP
     LATEST_SHA=$HASH
