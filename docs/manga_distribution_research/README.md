@@ -6,6 +6,8 @@
 
 ## 2. 실험 기록 (Version History)
 
+(아래 표는 CI/CD에 의해 `[publish]` 커밋 시 자동으로 업데이트됩니다.)
+
 | 버전 (Version) | 주요 변경사항 (Description) | 소스 코드 (Commit) | 결과물 (Deployment) |
 | :--- | :--- | :--- | :--- |
 | v0.2.0 | 5개 참조 이미지에 대한 전체 벡터화 파이프라인 실행 및 배포 | [`094eda9`](https://github.com/sigongjoa/TALOS_Studio/commit/094eda9) | [결과 보기](https://sigongjoa.github.io/TALOS_Studio/094eda9/) |
