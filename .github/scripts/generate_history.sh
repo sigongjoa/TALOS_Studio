@@ -131,7 +131,16 @@ cat <<EOF >> "$OUTPUT_DIR/index.html"
 <div class="mt-12">
 <h2 class="text-3xl font-bold font-display mb-6">Latest Visualization Result</h2>
 <div class="bg-card-light dark:bg-card-dark p-1 sm:p-2 rounded-lg shadow-md border border-border-light dark:border-border-dark">
-<iframe src="./$LATEST_SHA/" title="Latest Visualization Result"></iframe>
+  # 4. Add the iframe for the latest result
+  if [ -n "$LATEST_SHA" ] && [ "$LATEST_SHA" != "null" ]; then
+    echo "<div class=\"bg-card-light dark:bg-card-dark p-1 sm:p-2 rounded-lg shadow-md border border-border-light dark:border-border-dark\"><iframe src=\"https://sigongjoa.github.io/TALOS_Studio/$LATEST_SHA/\" title=\"Latest Visualization Result\"></iframe></div>" >> "$OUTPUT_DIR/index.html"
+  else
+    echo "<div class=\"bg-card-light dark:bg-card-dark p-1 sm:p-2 rounded-lg shadow-md border border-border-light dark:border-border-dark\"><p class=\"text-center text-subtle-light dark:text-subtle-dark p-4\">No published deployments to show yet.</p></div>" >> "$OUTPUT_DIR/index.html"
+  fi
+</div>
+</main>
+</div>
+</body></html>
 </div>
 </div>
 </main>
