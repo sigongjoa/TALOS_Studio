@@ -4,7 +4,13 @@
 set -ex
 
 # Define paths
-HISTORY_JSON_PATH=".history/docs/manga_distribution_research/deployment_history.json"
+if [ -d ".history" ]; then
+  # Running in master branch context, .history is checked out
+  HISTORY_JSON_PATH=".history/docs/manga_distribution_research/deployment_history.json"
+else
+  # Running in gh-pages branch context
+  HISTORY_JSON_PATH="docs/manga_distribution_research/deployment_history.json"
+fi
 GH_PAGES_ROOT="."
 
 # --- Create current deployment assets ---
