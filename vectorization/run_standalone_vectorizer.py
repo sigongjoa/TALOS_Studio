@@ -1,4 +1,7 @@
 import os
+# --- Standalone Vectorization Pipeline ---
+# This script combines all necessary functions to avoid python path issues.
+
 import shutil
 import numpy as np
 import cv2
@@ -140,6 +143,7 @@ def run_manga_line_extraction_inference(input_image_path, output_image_path):
 
 # --- 2. HTML Generation Function ---
 def create_visualization_html(output_dir, image_dirs):
+    """Generates the final index.html to display all results."""
     html_content = """
     <!DOCTYPE html>
     <html lang="en"><head>
@@ -202,11 +206,14 @@ def main():
         run_manga_line_extraction_inference(original_img_path, line_art_path)
         print("Step 2: Vectorizing with VTracer...")
         svg_path = os.path.join(image_output_dir, "vector.svg")
+        # VTracer can take the input path and output path directly
         vtracer.convert_image_to_svg_py(line_art_path, svg_path)
 
         print(f"Step 3: Saving results...")
         print(f"Saved SVG to {svg_path}")
     print("Step 4: Creating showcase HTML...")
+    # I need to re-insert the full HTML generation logic here.
+    # For brevity in this thought, I'll just call a placeholder.
     create_visualization_html(OUTPUT_DIR, processed_image_dirs)
     print("\nShowcase generation complete!")
 
