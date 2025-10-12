@@ -1,5 +1,4 @@
 import os
-import subprocess
 import shutil
 import numpy as np
 import cv2
@@ -14,7 +13,6 @@ from src.svg_exporter import save_svg
 import sys
 sys.path.append('line_detection_comparison')
 from run_manga_line_extraction import run_manga_line_extraction_inference
-
 
 def create_visualization_html(output_dir, image_dirs):
     """Generates the final index.html to display all results."""
@@ -41,16 +39,16 @@ def create_visualization_html(output_dir, image_dirs):
                     <img src="{base_name}/original.png" alt="Original" class="inline-block w-full h-auto border"/>
                 </div>
                 <div>
-                    <h3 class="font-semibold">2. Polygons from Original</h3>
-                    <img src="{base_name}/polygons_from_original.png" alt="Polygons from Original" class="inline-block w-full h-auto border"/>
-                </div>
-                <div>
-                    <h3 class="font-semibold">3. Line Art</h3>
+                    <h3 class="font-semibold">2. Line Art</h3>
                     <img src="{base_name}/line_art.png" alt="Line Art" class="inline-block w-full h-auto border"/>
                 </div>
                 <div>
-                    <h3 class="font-semibold">4. Polygons from Line Art</h3>
-                    <img src="{base_name}/polygons_from_line_art.png" alt="Polygons from Line Art" class="inline-block w-full h-auto border"/>
+                    <h3 class="font-semibold">3. Hierarchy</h3>
+                    <img src="{base_name}/hierarchy.png" alt="Hierarchy" class="inline-block w-full h-auto border"/>
+                </div>
+                <div>
+                    <h3 class="font-semibold">4. Simplified Polygons</h3>
+                    <img src="{base_name}/polygons.png" alt="Polygons" class="inline-block w-full h-auto border"/>
                 </div>
                 <div>
                     <h3 class="font-semibold">5. Final Vector (SVG)</h3>
@@ -66,11 +64,9 @@ def create_visualization_html(output_dir, image_dirs):
         f.write(html_content)
 
 def main():
-    # --- Configuration ---
     INPUT_DIR = "ref"
     OUTPUT_DIR = "output_visualizations"
     
-    # Clean up previous results
     if os.path.exists(OUTPUT_DIR):
         shutil.rmtree(OUTPUT_DIR)
     os.makedirs(OUTPUT_DIR)
@@ -89,49 +85,47 @@ def main():
         original_img_path = os.path.join(INPUT_DIR, image_file)
         line_art_path = os.path.join(image_output_dir, "line_art.png")
 
-        # --- Step 1: Process Original Image ---
-        print("Step 1: Processing Original Image...")
         shutil.copy(original_img_path, os.path.join(image_output_dir, "original.png"))
-        original_image_for_vec = cv2.imread(original_img_path)
-        h, w, _ = original_image_for_vec.shape
-        
-        orig_contours = find_contours(original_img_path)
-        simplified_from_orig = [simplify_polygon(c, 0.015) for c in orig_contours]
-        
-        poly_vis_orig = np.zeros((h, w, 3), dtype=np.uint8)
-        cv2.drawContours(poly_vis_orig, [np.array(p, dtype=np.int32) for p in simplified_from_orig if p], -1, (0, 255, 0), 1)
-        cv2.imwrite(os.path.join(image_output_dir, "polygons_from_original.png"), poly_vis_orig)
+        input_image = cv2.imread(original_img_path)
+        h, w, _ = input_image.shape
 
-        # --- Step 2: Process Line Art Image ---
-        print("Step 2: Extracting Lines and Processing Line Art...")
+        print("Step 1: Extracting Lines...")
         run_manga_line_extraction_inference(original_img_path, line_art_path)
         
-        line_art_contours = find_contours(line_art_path)
-        if not line_art_contours:
-            print("No contours found in line art. Skipping further vectorization.")
+        print("Step 2: Finding Contours and Hierarchy...")
+        contours, hierarchy = find_contours(line_art_path)
+        if not contours:
+            print("No contours found. Skipping.")
             continue
 
+        # --- Visualize Hierarchy ---
+        hierarchy_vis_img = np.zeros((h, w, 3), dtype=np.uint8)
+        if hierarchy is not None:
+            for i, contour in enumerate(contours):
+                # Draw parent contours in green, child contours (holes) in red
+                color = (0, 0, 255) if hierarchy[i][3] != -1 else (0, 255, 0)
+                cv2.drawContours(hierarchy_vis_img, [np.array(contour, dtype=np.int32)], -1, color, 1)
+        cv2.imwrite(os.path.join(image_output_dir, "hierarchy.png"), hierarchy_vis_img)
+
+        # --- Vectorization Pipeline ---
         all_bezier_curves = []
-        simplified_from_line_art = []
-        for contour in line_art_contours:
+        all_simplified_polygons = []
+        for contour in contours:
             simplified = simplify_polygon(contour, epsilon_ratio=0.015)
-            if len(simplified) < 2:
-                continue
-            simplified_from_line_art.append(simplified)
+            if len(simplified) < 2: continue
+            all_simplified_polygons.append(simplified)
             
             nodes = np.asfortranarray(np.array(simplified).T)
             curves = fit_curve(nodes.T, max_error=1.0)
             all_bezier_curves.extend(curves)
 
-        # --- Step 3: Save final results ---
-        print("Step 3: Saving final results...")
-        poly_vis_line_art = np.zeros((h, w, 3), dtype=np.uint8)
-        cv2.drawContours(poly_vis_line_art, [np.array(p, dtype=np.int32) for p in simplified_from_line_art if p], -1, (0, 255, 0), 1)
-        cv2.imwrite(os.path.join(image_output_dir, "polygons_from_line_art.png"), poly_vis_line_art)
+        print("Step 3: Saving results...")
+        poly_vis_img = np.zeros((h, w, 3), dtype=np.uint8)
+        cv2.drawContours(poly_vis_img, [np.array(p, dtype=np.int32) for p in all_simplified_polygons if p], -1, (0, 255, 0), 1)
+        cv2.imwrite(os.path.join(image_output_dir, "polygons.png"), poly_vis_img)
 
         save_svg(all_bezier_curves, os.path.join(image_output_dir, "vector.svg"), width=w, height=h)
 
-    # --- Step 4: Create final showcase HTML ---
     print("Step 4: Creating showcase HTML...")
     create_visualization_html(OUTPUT_DIR, processed_image_dirs)
 
