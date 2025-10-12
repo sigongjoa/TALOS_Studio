@@ -38,6 +38,20 @@ if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
 
   # Add new entry to the history file
   jq --argjson new_entry "$NEW_ENTRY" '[$new_entry] + .' "$HISTORY_JSON_PATH" > tmp.json && mv tmp.json "$HISTORY_JSON_PATH"
+
+  # --- Commit and push the updated history file to the history branch ---
+  echo "Committing and pushing history file to history branch..."
+  cd "$HISTORY_PATH"
+  git config --global user.name 'github-actions[bot]'
+  git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+  git add .
+  if ! git diff-index --quiet HEAD; then
+    git commit -m "Docs: Update deployment history for $SHORT_SHA [skip ci]"
+    git push origin history
+  else
+    echo "History file is already up to date."
+  fi
+  cd "$OLDPWD" # Go back to the original directory
 fi
 
 # --- 3. Generate index.html from the history file ---

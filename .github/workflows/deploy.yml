@@ -40,14 +40,6 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           HISTORY_PATH: .history
 
-      - name: Auto-commit history file changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          repository: .history
-          commit_message: "Docs: Update deployment history [skip ci]"
-          branch: history
-          file_pattern: "docs/manga_distribution_research/deployment_history.json"
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
