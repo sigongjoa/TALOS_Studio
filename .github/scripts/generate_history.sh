@@ -3,54 +3,44 @@
 # Exit on error and print commands
 set -ex
 
+# Define paths
 HISTORY_JSON_PATH="$HISTORY_PATH/docs/manga_distribution_research/deployment_history.json"
 OUTPUT_DIR="output_for_deployment"
 
-# Always create a clean output directory
+# Always create a clean output directory for the artifact
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
-# --- Create current deployment assets ---
+# --- 1. Create current deployment assets ---
 SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-mkdir -p "$OUTPUT_DIR/$SHORT_SHA"
-cp -a ./output_visualizations/* "$OUTPUT_DIR/$SHORT_SHA/" 2>/dev/null || echo "No visualization output to copy."
+ASSET_DIR="$OUTPUT_DIR/$SHORT_SHA"
+mkdir -p "$ASSET_DIR"
+cp -a ./output_visualizations/* "$ASSET_DIR/" 2>/dev/null || echo "No visualization output to copy."
 
-
-# --- Check for [publish] flag and update history file ---
+# --- 2. If [publish] flag is set, update the history file ---
 if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
   echo "[publish] flag detected. Updating history file..."
   
-  COMMIT_MSG_CLEAN=$(echo "$COMMIT_MSG" | sed 's/"/\"/g' | sed 's/\\\[publish\\\\]//g' | xargs)
+  COMMIT_MSG_CLEAN=$(echo "$COMMIT_MSG" | sed 's/"/\\"/g' | sed 's/\[publish\]//g' | xargs)
   TIMESTAMP=$(git log -1 --format=%ct -- "$GITHUB_SHA")
 
+  # Create a new JSON object for the current entry, including paths to results
   NEW_ENTRY=$(jq -n \
                 --arg hash "$SHORT_SHA" \
                 --arg msg "$COMMIT_MSG_CLEAN" \
                 --arg ts "$TIMESTAMP" \
-                '{hash: $hash, message: $msg, timestamp: $ts}')
+                '{ hash: $hash, message: $msg, timestamp: $ts, results: { original: "\($hash)/original.png", line_art: "\($hash)/line_art.png", polygons: "\($hash)/polygons.png", vector: "\($hash)/vector.svg" } }')
 
   # Create history file if it doesn't exist
   if [ ! -f "$HISTORY_JSON_PATH" ]; then
     echo "[]" > "$HISTORY_JSON_PATH"
   fi
 
+  # Add new entry to the history file
   jq --argjson new_entry "$NEW_ENTRY" '[$new_entry] + .' "$HISTORY_JSON_PATH" > tmp.json && mv tmp.json "$HISTORY_JSON_PATH"
-
-  # --- Commit and push the updated history file to the history branch ---
-  cd "$HISTORY_PATH"
-  git config --global user.name 'github-actions[bot]'
-  git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-  git add .
-  if ! git diff-index --quiet HEAD; then
-    git commit -m "Docs: Update deployment history for $SHORT_SHA [skip ci]"
-    git push origin history
-  else
-    echo "History file is already up to date."
-  fi
-  cd "$OLDPWD" # Go back to the original directory
 fi
 
-# --- Generate index.html from the latest history file ---
+# --- 3. Generate index.html from the history file ---
 echo "Generating index.html from $HISTORY_JSON_PATH..."
 
 # Create an empty history file for the next step if it doesn't exist
@@ -58,7 +48,7 @@ if [ ! -f "$HISTORY_JSON_PATH" ]; then
   echo "[]" > "$HISTORY_JSON_PATH"
 fi
 
-# 1. Write top part of the HTML
+# Start writing the HTML file
 cat <<'EOF' > "$OUTPUT_DIR/index.html"
 <!DOCTYPE html>
 <html lang="en"><head>
@@ -116,7 +106,7 @@ cat <<'EOF' > "$OUTPUT_DIR/index.html"
 <ul class="space-y-3">
 EOF
 
-# 2. Generate the <ul> list dynamically from JSON
+# Generate the <ul> list dynamically from JSON
 LATEST_SHA=$(jq -r '.[0].hash // ""' "$HISTORY_JSON_PATH")
 jq -c '.[]' "$HISTORY_JSON_PATH" | while read -r entry; do
     HASH=$(echo "$entry" | jq -r '.hash')
@@ -134,24 +124,14 @@ jq -c '.[]' "$HISTORY_JSON_PATH" | while read -r entry; do
 EOT
 done
 
-# 3. Write middle part of HTML
-cat <<'EOF' >> "$OUTPUT_DIR/index.html"
+# Write the rest of the HTML, including the iframe
+cat <<EOF >> "$OUTPUT_DIR/index.html"
 </ul>
 </div>
 <div class="mt-12">
 <h2 class="text-3xl font-bold font-display mb-6">Latest Visualization Result</h2>
 <div class="bg-card-light dark:bg-card-dark p-1 sm:p-2 rounded-lg shadow-md border border-border-light dark:border-border-dark">
-EOF
-
-# 4. Add the iframe for the latest result
-if [ -n "$LATEST_SHA" ]; then
-  echo "<iframe src=\"https://sigongjoa.github.io/TALOS_Studio/$LATEST_SHA/\"></iframe>" >> "$OUTPUT_DIR/index.html"
-else
-  echo "<p class=\"text-center text-subtle-light dark:text-subtle-dark\">No published deployments to show yet.</p>" >> "$OUTPUT_DIR/index.html"
-fi
-
-# 5. Write the final part of the HTML
-cat <<'EOF' >> "$OUTPUT_DIR/index.html"
+<iframe src="./$LATEST_SHA/" title="Latest Visualization Result"></iframe>
 </div>
 </div>
 </main>

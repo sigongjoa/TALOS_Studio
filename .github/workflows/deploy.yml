@@ -1,14 +1,15 @@
-name: Deploy Line Detection Visualizations to GitHub Pages
+name: Deploy Vectorization Showcase to GitHub Pages
 
 on:
   push:
     branches:
       - main
       - master
+    # Do not run on commits made by the action itself
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
 permissions:
-  contents: write # Needed to checkout the gh-pages branch and get commit info
+  contents: write # Needed to checkout/push to the history branch
   pages: write
   id-token: write
 
@@ -17,7 +18,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main branch (for source code)
@@ -32,23 +33,26 @@ jobs:
           path: .history
 
       - name: Prepare deployment files
+        id: prep
         run: bash .github/scripts/generate_history.sh
         env:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
+          GITHUB_SHA: ${{ github.sha }}
           HISTORY_PATH: .history
+
+      - name: Auto-commit history file changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          repository: .history
+          commit_message: "Docs: Update deployment history [skip ci]"
+          branch: history
+          file_pattern: "docs/manga_distribution_research/deployment_history.json"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: './output_for_deployment'
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
