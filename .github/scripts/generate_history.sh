@@ -4,7 +4,7 @@
 set -ex
 
 # Define paths
-HISTORY_ROOT="$HISTORY_PATH"
+GH_PAGES_ROOT="."
 HISTORY_JSON_PATH="$HISTORY_ROOT/docs/manga_distribution_research/deployment_history.json"
 
 # --- Create current deployment assets ---
