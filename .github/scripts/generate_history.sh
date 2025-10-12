@@ -5,7 +5,7 @@ set -ex
 
 # Define paths
 HISTORY_JSON_PATH=".history/docs/manga_distribution_research/deployment_history.json"
-GH_PAGES_ROOT=".gh-pages"
+GH_PAGES_ROOT="."
 
 # --- Create current deployment assets ---
 SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
