@@ -34,7 +34,7 @@ if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
   fi
 
   # Add new entry to the history file
-  /home/zesky/miniconda/envs/vectorization/bin/jq --argjson new_entry "$NEW_ENTRY" '[$new_entry] + .' "$HISTORY_JSON_PATH" > tmp.json && mv tmp.json "$HISTORY_JSON_PATH"
+  jq --argjson new_entry "$NEW_ENTRY" '[$new_entry] + .' "$HISTORY_JSON_PATH" > tmp.json && mv tmp.json "$HISTORY_JSON_PATH"
 fi
 
 # --- Generate index.html from the history file ---
@@ -107,10 +107,10 @@ cat <<'EOF' >> "$HISTORY_ROOT/index.html"
 EOF
 
 # 2. Generate the <ul> list dynamically from JSON
-LATEST_SHA=$(/home/zesky/miniconda/envs/vectorization/bin/jq -r '.[0].hash // ""' "$HISTORY_JSON_PATH")
-/home/zesky/miniconda/envs/vectorization/bin/jq -c '.[]' "$HISTORY_JSON_PATH" | while read -r entry; do
-    HASH=$(echo "$entry" | /home/zesky/miniconda/envs/vectorization/bin/jq -r '.hash')
-    MSG=$(echo "$entry" | /home/zesky/miniconda/envs/vectorization/bin/jq -r '.message')
+LATEST_SHA=$(jq -r '.[0].hash // ""' "$HISTORY_JSON_PATH")
+jq -c '.[]' "$HISTORY_JSON_PATH" | while read -r entry; do
+    HASH=$(echo "$entry" | jq -r '.hash')
+    MSG=$(echo "$entry" | jq -r '.message')
     cat <<EOT >> "$HISTORY_ROOT/index.html"
 <li class="p-4 bg-background-light dark:bg-background-dark rounded-md flex items-center justify-between hover:shadow-lg transition-shadow duration-300">
 <div class="flex items-center">

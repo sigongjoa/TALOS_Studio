@@ -33,7 +33,10 @@ jobs:
           # Use a token with write permissions
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Prepare and Deploy
+      - name: Setup jq
+        uses: dblock/setup-jq@v2
+
+      - name: Prepare deployment files
         run: bash .github/scripts/generate_history.sh
         env:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
