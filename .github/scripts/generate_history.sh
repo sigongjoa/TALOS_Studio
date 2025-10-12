@@ -5,11 +5,10 @@ set -ex
 
 # Define paths
 HISTORY_JSON_PATH="$HISTORY_PATH/docs/manga_distribution_research/deployment_history.json"
-GH_PAGES_ROOT="$GH_PAGES_PATH"
 
 # --- Create current deployment assets ---
 SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-ASSET_DIR="$GH_PAGES_ROOT/$SHORT_SHA"
+ASSET_DIR="./$SHORT_SHA"
 mkdir -p "$ASSET_DIR"
 cp -a ./output_visualizations/* "$ASSET_DIR/" 2>/dev/null || echo "No visualization output to copy."
 
@@ -17,7 +16,7 @@ cp -a ./output_visualizations/* "$ASSET_DIR/" 2>/dev/null || echo "No visualizat
 if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
   echo "[publish] flag detected. Updating history file..."
   
-  COMMIT_MSG_CLEAN=$(echo "$COMMIT_MSG" | sed 's/"/\"/g' | sed 's/\[publish\]//g' | xargs)
+  COMMIT_MSG_CLEAN=$(echo "$COMMIT_MSG" | sed 's/"/\"/g' | sed 's/\\[publish\\]//g' | xargs)
   TIMESTAMP=$(git log -1 --format=%ct -- "$GITHUB_SHA")
 
   # Create a new JSON object for the current entry
@@ -46,8 +45,8 @@ fi
 
 # Start writing the HTML file
 TIMESTAMP_COMMENT="<!-- Updated at: $(date -u) -->"
-echo "$TIMESTAMP_COMMENT" > "$GH_PAGES_ROOT/index.html"
-cat <<'EOF' >> "$GH_PAGES_ROOT/index.html"
+echo "$TIMESTAMP_COMMENT" > "./index.html"
+cat <<'EOF' >> "./index.html"
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"/>
@@ -109,7 +108,7 @@ LATEST_SHA=$(jq -r '.[0].hash // ""' "$HISTORY_JSON_PATH")
 jq -c '.[]' "$HISTORY_JSON_PATH" | while read -r entry; do
     HASH=$(echo "$entry" | jq -r '.hash')
     MSG=$(echo "$entry" | jq -r '.message')
-    cat <<EOT >> "$GH_PAGES_ROOT/index.html"
+    cat <<EOT >> "./index.html"
 <li class="p-4 bg-background-light dark:bg-background-dark rounded-md flex items-center justify-between hover:shadow-lg transition-shadow duration-300">
 <div class="flex items-center">
 <span class="material-icons text-green-500 mr-3">check_circle</span>
@@ -123,7 +122,7 @@ EOT
 done
 
 # Write the rest of the HTML, including the iframe
-cat <<EOF >> "$GH_PAGES_ROOT/index.html"
+cat <<EOF >> "./index.html"
 </ul>
 </div>
 <div class="mt-12">

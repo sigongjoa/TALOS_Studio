@@ -31,12 +31,6 @@ jobs:
           ref: history
           path: .history
 
-      - name: Checkout gh-pages branch (for deployment content)
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: .gh-pages
-
       - name: Prepare deployment files
         id: prep
         run: bash .github/scripts/generate_history.sh
@@ -44,7 +38,6 @@ jobs:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
           GITHUB_SHA: ${{ github.sha }}
           HISTORY_PATH: .history
-          GH_PAGES_PATH: .gh-pages
 
       - name: Auto-commit history file changes
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -54,14 +47,12 @@ jobs:
           branch: history
           file_pattern: "docs/manga_distribution_research/deployment_history.json"
 
-      - name: Commit and Push to gh-pages branch
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          repository: .gh-pages
-          commit_message: "Deploy: Update GitHub Pages content [skip ci]"
-          branch: gh-pages
-          file_pattern: "**/*"
-
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: . # Publish the root of the workspace
+          force_orphan: false # Crucial: do NOT orphan, keep history
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          cname: '' # Disable Jekyll
