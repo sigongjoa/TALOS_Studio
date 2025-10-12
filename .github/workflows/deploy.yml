@@ -43,6 +43,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages # Explicitly set the branch
           publish_dir: .history # Publish the content of the .history directory
           force_orphan: false # Crucial: do NOT orphan, keep history
           user_name: 'github-actions[bot]'
