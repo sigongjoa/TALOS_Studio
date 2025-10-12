@@ -48,6 +48,9 @@ jobs:
           branch: history
           file_pattern: "docs/manga_distribution_research/deployment_history.json"
 
+      - name: List files in output directory
+        run: ls -R ./output_for_deployment
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
