@@ -8,7 +8,7 @@ on:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
 permissions:
-  contents: write # Needed to checkout/push to the history branch
+  contents: write # Needed to checkout/push to branches
   pages: write
   id-token: write
 
@@ -25,27 +25,18 @@ jobs:
         with:
           fetch-depth: 0 # Fetch all history for git log
 
-      - name: Checkout history branch (for data file and deployment content)
+      - name: Checkout history branch (for deployment content)
         uses: actions/checkout@v4
         with:
           ref: history
           path: .history
+          # Use a token with write permissions
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Prepare deployment files
-        id: prep
+      - name: Prepare and Deploy
         run: bash .github/scripts/generate_history.sh
         env:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
           GITHUB_SHA: ${{ github.sha }}
           HISTORY_PATH: .history
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages # Explicitly set the branch
-          publish_dir: .history # Publish the content of the .history directory
-          force_orphan: false # Crucial: do NOT orphan, keep history
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
-          cname: '' # Disable Jekyll
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

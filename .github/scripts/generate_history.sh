@@ -4,7 +4,7 @@
 set -ex
 
 # Define paths
-GH_PAGES_ROOT="."
+HISTORY_ROOT="$HISTORY_PATH"
 HISTORY_JSON_PATH="$HISTORY_ROOT/docs/manga_distribution_research/deployment_history.json"
 
 # --- Create current deployment assets ---
@@ -17,7 +17,7 @@ cp -a ./output_visualizations/* "$ASSET_DIR/" 2>/dev/null || echo "No visualizat
 if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
   echo "[publish] flag detected. Updating history file..."
   
-  COMMIT_MSG_CLEAN=$(echo "$COMMIT_MSG" | sed 's/"/\"/g' | sed 's/\\[publish\\]//g' | xargs)
+  COMMIT_MSG_CLEAN=$(echo "$COMMIT_MSG" | sed 's/"/\\"/g' | sed 's/\[publish\]//g' | xargs)
   TIMESTAMP=$(git log -1 --format=%ct -- "$GITHUB_SHA")
 
   # Create a new JSON object for the current entry
@@ -29,6 +29,7 @@ if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
 
   # Create history file if it doesn't exist
   if [ ! -f "$HISTORY_JSON_PATH" ]; then
+    mkdir -p $(dirname "$HISTORY_JSON_PATH")
     echo "[]" > "$HISTORY_JSON_PATH"
   fi
 
@@ -41,6 +42,7 @@ echo "Generating index.html from $HISTORY_JSON_PATH..."
 
 # Create an empty history file for the next step if it doesn't exist
 if [ ! -f "$HISTORY_JSON_PATH" ]; then
+  mkdir -p $(dirname "$HISTORY_JSON_PATH")
   echo "[]" > "$HISTORY_JSON_PATH"
 fi
 
@@ -136,3 +138,16 @@ cat <<EOF >> "$HISTORY_ROOT/index.html"
 </div>
 </body></html>
 EOF
+
+# --- Commit and Push to history branch ---
+echo "Committing and pushing to history branch..."
+cd "$HISTORY_ROOT"
+git config --global user.name 'github-actions[bot]'
+git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+git add .
+if ! git diff-index --quiet HEAD; then
+  git commit -m "Deploy: Update content for $SHORT_SHA [skip ci]"
+  git push origin history
+else
+  echo "No changes to deploy."
+fi
