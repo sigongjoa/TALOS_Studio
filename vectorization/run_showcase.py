@@ -1,12 +1,19 @@
 import os
+import sys
+
+# Add conda environment's site-packages to the path
+site_packages_path = '/home/zesky/miniconda/envs/vectorization/lib/python3.12/site-packages'
+if site_packages_path not in sys.path:
+    sys.path.insert(0, site_packages_path)
+
 import shutil
 import numpy as np
 import cv2
+import potracer # Import the new library
 
 # --- Import our vectorization modules ---
 from src.path_decomposition import find_contours
-from src.polygon_optimization import simplify_polygon
-from src.curve_fitting import fit_curve
+# simplify_polygon and fit_curve are no longer needed
 from src.svg_exporter import save_svg
 
 # --- We need to add the line_detection_comparison path to import its script ---
@@ -33,25 +40,17 @@ def create_visualization_html(output_dir, image_dirs):
         html_content += f'''
         <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
             <h2 class="text-2xl font-bold mb-4">{base_name}</h2>
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 text-center">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                 <div>
                     <h3 class="font-semibold">1. Original</h3>
                     <img src="{base_name}/original.png" alt="Original" class="inline-block w-full h-auto border"/>
                 </div>
                 <div>
-                    <h3 class="font-semibold">2. Line Art</h3>
+                    <h3 class="font-semibold">2. Line Art (Input)</h3>
                     <img src="{base_name}/line_art.png" alt="Line Art" class="inline-block w-full h-auto border"/>
                 </div>
                 <div>
-                    <h3 class="font-semibold">3. Hierarchy</h3>
-                    <img src="{base_name}/hierarchy.png" alt="Hierarchy" class="inline-block w-full h-auto border"/>
-                </div>
-                <div>
-                    <h3 class="font-semibold">4. Simplified Polygons</h3>
-                    <img src="{base_name}/polygons.png" alt="Polygons" class="inline-block w-full h-auto border"/>
-                </div>
-                <div>
-                    <h3 class="font-semibold">5. Final Vector (SVG)</h3>
+                    <h3 class="font-semibold">3. Final Vector (SVG)</h3>
                     <img src="{base_name}/vector.svg" alt="Vector SVG" class="inline-block w-full h-auto border"/>
                 </div>
             </div>
@@ -92,39 +91,35 @@ def main():
         print("Step 1: Extracting Lines...")
         run_manga_line_extraction_inference(original_img_path, line_art_path)
         
-        print("Step 2: Finding Contours and Hierarchy...")
-        contours, hierarchy = find_contours(line_art_path)
-        if not contours:
-            print("No contours found. Skipping.")
-            continue
+        print("Step 2: Vectorizing with Potracer...")
+        # Load the line art image as a numpy array for potracer
+        data = cv2.imread(line_art_path, cv2.IMREAD_GRAYSCALE)
+        # Potracer works best with inverted images (black lines on white background)
+        data = 255 - data
 
-        # --- Visualize Hierarchy ---
-        hierarchy_vis_img = np.zeros((h, w, 3), dtype=np.uint8)
-        if hierarchy is not None:
-            for i, contour in enumerate(contours):
-                # Draw parent contours in green, child contours (holes) in red
-                color = (0, 0, 255) if hierarchy[i][3] != -1 else (0, 255, 0)
-                cv2.drawContours(hierarchy_vis_img, [np.array(contour, dtype=np.int32)], -1, color, 1)
-        cv2.imwrite(os.path.join(image_output_dir, "hierarchy.png"), hierarchy_vis_img)
+        # Create a potrace Bitmap from the data
+        bitmap = potracer.Bitmap(data)
 
-        # --- Vectorization Pipeline ---
-        all_bezier_curves = []
-        all_simplified_polygons = []
-        for contour in contours:
-            simplified = simplify_polygon(contour, epsilon_ratio=0.015)
-            if len(simplified) < 2: continue
-            all_simplified_polygons.append(simplified)
-            
-            nodes = np.asfortranarray(np.array(simplified).T)
-            curves = fit_curve(nodes.T, max_error=1.0)
-            all_bezier_curves.extend(curves)
+        # Trace the bitmap
+        path = bitmap.trace()
 
+        # --- Step 3: Save final SVG --- 
         print("Step 3: Saving results...")
-        poly_vis_img = np.zeros((h, w, 3), dtype=np.uint8)
-        cv2.drawContours(poly_vis_img, [np.array(p, dtype=np.int32) for p in all_simplified_polygons if p], -1, (0, 255, 0), 1)
-        cv2.imwrite(os.path.join(image_output_dir, "polygons.png"), poly_vis_img)
-
-        save_svg(all_bezier_curves, os.path.join(image_output_dir, "vector.svg"), width=w, height=h)
+        svg_path = os.path.join(image_output_dir, "vector.svg")
+        with open(svg_path, "w") as f:
+            f.write(f"<svg width='{w}' height='{h}' xmlns='http://www.w3.org/2000/svg'>")
+            # The path object has a `vertices` property that can be used to generate an SVG path string
+            parts = []
+            for curve in path.curves:
+                parts.append(f"M{curve.start_point.x:.2f},{curve.start_point.y:.2f}")
+                for segment in curve.segments:
+                    x1, y1 = segment.c1.x, segment.c1.y
+                    x2, y2 = segment.c2.x, segment.c2.y
+                    x3, y3 = segment.end_point.x, segment.end_point.y
+                    parts.append(f"C{x1:.2f},{y1:.2f} {x2:.2f},{y2:.2f} {x3:.2f},{y3:.2f}")
+            f.write(f'<path d="{" ".join(parts)}" stroke="black" fill="none" stroke-width="0.5"/>')
+            f.write('</svg>')
+        print(f"Saved SVG to {svg_path}")
 
     print("Step 4: Creating showcase HTML...")
     create_visualization_html(OUTPUT_DIR, processed_image_dirs)
