@@ -13,6 +13,8 @@ if PROJECT_ROOT not in sys.path:
 # Import helper inference functions
 from line_detection_comparison.run_manga_line_extraction import run_manga_line_extraction_inference
 from line_detection_comparison.run_sold2 import run_sold2_inference
+from AXIS.scripts.line_to_bezier import convert_lines_to_bezier
+import json
 
 # --- Configuration ---
 INPUT_IMAGE_PATHS = [
@@ -108,7 +110,19 @@ def generate_visualizations():
         # Panel 4: Line Detection (SOLD2)
         sold2_detection_img_name = "sold2_detection.png"
         sold2_detection_img_path = os.path.join(output_sub_dir, sold2_detection_img_name)
-        run_sold2_inference(manga_lines_img_path, sold2_detection_img_path)
+        # Capture the returned line segments
+        sold2_line_segments = run_sold2_inference(manga_lines_img_path, sold2_detection_img_path)
+
+        # Convert SOLD2 line segments to Bezier curves
+        if sold2_line_segments:
+            bezier_curves = convert_lines_to_bezier(sold2_line_segments)
+            bezier_json_name = "sold2_bezier_curves.json"
+            bezier_json_path = os.path.join(output_sub_dir, bezier_json_name)
+            with open(bezier_json_path, "w") as f:
+                json.dump(bezier_curves, f, indent=4)
+            print(f"Saved Bezier curves to {bezier_json_path}")
+        else:
+            print(f"No SOLD2 line segments detected for {image_id}, skipping Bezier conversion.")
 
         # Panel 5: Curve Detection (Canny)
         canny_detection_img_name = "canny_detection.png"
