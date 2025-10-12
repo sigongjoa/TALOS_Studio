@@ -4,7 +4,7 @@
 set -ex
 
 # Define paths
-HISTORY_JSON_PATH="$HISTORY_PATH/docs/manga_distribution_research/deployment_history.json"
+HISTORY_JSON_PATH="$GH_PAGES_ROOT/docs/manga_distribution_research/deployment_history.json"
 
 # Determine if we are running in the context of the gh-pages branch itself
 # This is true if the current working directory is the root of the gh-pages branch checkout
