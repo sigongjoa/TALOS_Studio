@@ -5,7 +5,13 @@ set -ex
 
 # Define paths
 GH_PAGES_ROOT="."
-HISTORY_JSON_PATH="$HISTORY_ROOT/docs/manga_distribution_research/deployment_history.json"
+if [ -d ".history" ]; then
+  # Running in master branch context, .history is checked out
+  HISTORY_JSON_PATH=".history/docs/manga_distribution_research/deployment_history.json"
+else
+  # Running in gh-pages branch context
+  HISTORY_JSON_PATH="docs/manga_distribution_research/deployment_history.json"
+fi
 
 # --- Create current deployment assets ---
 SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
