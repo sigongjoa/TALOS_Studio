@@ -25,7 +25,7 @@ jobs:
         with:
           fetch-depth: 0 # Fetch all history for git log
 
-      - name: Checkout history branch (for data file)
+      - name: Checkout history branch (for data file and deployment content)
         uses: actions/checkout@v4
         with:
           ref: history
@@ -39,19 +39,11 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           HISTORY_PATH: .history
 
-      - name: Auto-commit history file changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          repository: .history
-          commit_message: "Docs: Update deployment history [skip ci]"
-          branch: history
-          file_pattern: "docs/manga_distribution_research/deployment_history.json"
-
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .gh-pages # Publish the content of the .gh-pages directory
+          publish_dir: .history # Publish the content of the .history directory
           force_orphan: false # Crucial: do NOT orphan, keep history
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'

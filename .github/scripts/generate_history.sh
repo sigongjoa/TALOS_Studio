@@ -3,49 +3,13 @@
 # Exit on error and print commands
 set -ex
 
-# Determine if we are running in the context of the gh-pages branch itself
-# This is true if the current working directory is the root of the gh-pages branch checkout
-# and the script is called from the master branch checkout
-
 # Define paths
-# Dynamically set HISTORY_JSON_PATH based on the current branch context
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ "$CURRENT_BRANCH" = "gh-pages" ]; then
-  HISTORY_JSON_PATH="docs/manga_distribution_research/deployment_history.json"
-else
-  # Assume master branch context, where .history is checked out
-  if [ -d ".history" ]; then
-  # Running in master branch context, .history is checked out
-  if [ -d ".history" ]; then
-  # Running in master branch context, .history is checked out
-  if [ -d ".history" ]; then
-  # Running in master branch context, .history is checked out
-  if [ -d ".history" ]; then
-  # Running in master branch context, .history is checked out
-  HISTORY_JSON_PATH=".history/docs/manga_distribution_research/deployment_history.json"
-else
-  # Running in gh-pages branch context
-  HISTORY_JSON_PATH="docs/manga_distribution_research/deployment_history.json"
-fi
-else
-  # Running in gh-pages branch context
-  HISTORY_JSON_PATH="docs/manga_distribution_research/deployment_history.json"
-fi
-else
-  # Running in gh-pages branch context
-  HISTORY_JSON_PATH="docs/manga_distribution_research/deployment_history.json"
-fi
-else
-  # Running in gh-pages branch context
-  HISTORY_JSON_PATH="docs/manga_distribution_research/deployment_history.json"
-fi
-fi
-
-GH_PAGES_ROOT="."
+HISTORY_ROOT="$HISTORY_PATH"
+HISTORY_JSON_PATH="$HISTORY_ROOT/docs/manga_distribution_research/deployment_history.json"
 
 # --- Create current deployment assets ---
 SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-ASSET_DIR="./$SHORT_SHA"
+ASSET_DIR="$HISTORY_ROOT/$SHORT_SHA"
 mkdir -p "$ASSET_DIR"
 cp -a ./output_visualizations/* "$ASSET_DIR/" 2>/dev/null || echo "No visualization output to copy."
 
@@ -82,8 +46,8 @@ fi
 
 # Start writing the HTML file
 TIMESTAMP_COMMENT="<!-- Updated at: $(date -u) -->"
-echo "$TIMESTAMP_COMMENT" > "./index.html"
-cat <<'EOF' >> "./index.html"
+echo "$TIMESTAMP_COMMENT" > "$HISTORY_ROOT/index.html"
+cat <<'EOF' >> "$HISTORY_ROOT/index.html"
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"/>
@@ -145,7 +109,7 @@ LATEST_SHA=$(jq -r '.[0].hash // ""' "$HISTORY_JSON_PATH")
 jq -c '.[]' "$HISTORY_JSON_PATH" | while read -r entry; do
     HASH=$(echo "$entry" | jq -r '.hash')
     MSG=$(echo "$entry" | jq -r '.message')
-    cat <<EOT >> "./index.html"
+    cat <<EOT >> "$HISTORY_ROOT/index.html"
 <li class="p-4 bg-background-light dark:bg-background-dark rounded-md flex items-center justify-between hover:shadow-lg transition-shadow duration-300">
 <div class="flex items-center">
 <span class="material-icons text-green-500 mr-3">check_circle</span>
@@ -159,7 +123,7 @@ EOT
 done
 
 # Write the rest of the HTML, including the iframe
-cat <<EOF >> "./index.html"
+cat <<EOF >> "$HISTORY_ROOT/index.html"
 </ul>
 </div>
 <div class="mt-12">
