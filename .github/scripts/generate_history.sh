@@ -5,19 +5,15 @@ set -ex
 
 # Define paths
 HISTORY_JSON_PATH="$HISTORY_PATH/docs/manga_distribution_research/deployment_history.json"
-OUTPUT_DIR="output_for_deployment"
+GH_PAGES_ROOT="$GH_PAGES_PATH"
 
-# Always create a clean output directory for the artifact
-rm -rf "$OUTPUT_DIR"
-mkdir -p "$OUTPUT_DIR"
-
-# --- 1. Create current deployment assets ---
+# --- Create current deployment assets ---
 SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-ASSET_DIR="$OUTPUT_DIR/$SHORT_SHA"
+ASSET_DIR="$GH_PAGES_ROOT/$SHORT_SHA"
 mkdir -p "$ASSET_DIR"
 cp -a ./output_visualizations/* "$ASSET_DIR/" 2>/dev/null || echo "No visualization output to copy."
 
-# --- 2. If [publish] flag is set, update the history file ---
+# --- Check for [publish] flag and update history file ---
 if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
   echo "[publish] flag detected. Updating history file..."
   
@@ -29,7 +25,7 @@ if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
                 --arg hash "$SHORT_SHA" \
                 --arg msg "$COMMIT_MSG_CLEAN" \
                 --arg ts "$TIMESTAMP" \
-                '{hash: $hash, message: $msg, timestamp: $ts, results: { original: "\($hash)/original.png", line_art: "\($hash)/line_art.png", polygons: "\($hash)/polygons.png", vector: "\($hash)/vector.svg" } }')
+                '{ hash: $hash, message: $msg, timestamp: $ts, results: { original: "\($hash)/original.png", line_art: "\($hash)/line_art.png", polygons: "\($hash)/polygons.png", vector: "\($hash)/vector.svg" } }')
 
   # Create history file if it doesn't exist
   if [ ! -f "$HISTORY_JSON_PATH" ]; then
@@ -40,7 +36,7 @@ if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
   jq --argjson new_entry "$NEW_ENTRY" '[$new_entry] + .' "$HISTORY_JSON_PATH" > tmp.json && mv tmp.json "$HISTORY_JSON_PATH"
 fi
 
-# --- 3. Generate index.html from the history file ---
+# --- Generate index.html from the history file ---
 echo "Generating index.html from $HISTORY_JSON_PATH..."
 
 # Create an empty history file for the next step if it doesn't exist
@@ -50,8 +46,8 @@ fi
 
 # Start writing the HTML file
 TIMESTAMP_COMMENT="<!-- Updated at: $(date -u) -->"
-echo "$TIMESTAMP_COMMENT" > "$OUTPUT_DIR/index.html"
-cat <<'EOF' >> "$OUTPUT_DIR/index.html"
+echo "$TIMESTAMP_COMMENT" > "$GH_PAGES_ROOT/index.html"
+cat <<'EOF' >> "$GH_PAGES_ROOT/index.html"
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"/>
@@ -108,12 +104,12 @@ cat <<'EOF' >> "$OUTPUT_DIR/index.html"
 <ul class="space-y-3">
 EOF
 
-# Generate the <ul> list dynamically from JSON
+# 2. Generate the <ul> list dynamically from JSON
 LATEST_SHA=$(jq -r '.[0].hash // ""' "$HISTORY_JSON_PATH")
 jq -c '.[]' "$HISTORY_JSON_PATH" | while read -r entry; do
     HASH=$(echo "$entry" | jq -r '.hash')
     MSG=$(echo "$entry" | jq -r '.message')
-    cat <<EOT >> "$OUTPUT_DIR/index.html"
+    cat <<EOT >> "$GH_PAGES_ROOT/index.html"
 <li class="p-4 bg-background-light dark:bg-background-dark rounded-md flex items-center justify-between hover:shadow-lg transition-shadow duration-300">
 <div class="flex items-center">
 <span class="material-icons text-green-500 mr-3">check_circle</span>
@@ -127,7 +123,7 @@ EOT
 done
 
 # Write the rest of the HTML, including the iframe
-cat <<EOF >> "$OUTPUT_DIR/index.html"
+cat <<EOF >> "$GH_PAGES_ROOT/index.html"
 </ul>
 </div>
 <div class="mt-12">

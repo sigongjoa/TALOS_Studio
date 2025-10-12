@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - master
-    # Do not run on commits made by the action itself
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
 permissions:
@@ -32,6 +31,12 @@ jobs:
           ref: history
           path: .history
 
+      - name: Checkout gh-pages branch (for deployment content)
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: .gh-pages
+
       - name: Prepare deployment files
         id: prep
         run: bash .github/scripts/generate_history.sh
@@ -39,6 +44,7 @@ jobs:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
           GITHUB_SHA: ${{ github.sha }}
           HISTORY_PATH: .history
+          GH_PAGES_PATH: .gh-pages
 
       - name: Auto-commit history file changes
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -48,13 +54,13 @@ jobs:
           branch: history
           file_pattern: "docs/manga_distribution_research/deployment_history.json"
 
-      - name: List files in output directory
-        run: ls -R ./output_for_deployment
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Commit and Push to gh-pages branch
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          path: './output_for_deployment' # This was the critical fix
+          repository: .gh-pages
+          commit_message: "Deploy: Update GitHub Pages content [skip ci]"
+          branch: gh-pages
+          file_pattern: "**/*"
 
       - name: Deploy to GitHub Pages
         id: deployment
