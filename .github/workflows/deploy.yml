@@ -98,18 +98,21 @@ jobs:
           # Generate the list of deployments
           find ./gh-pages -mindepth 1 -maxdepth 1 -type d | sort -r | while read -r dir; do
             COMMIT_HASH=$(basename "$dir")
-            COMMIT_MSG=$(git log --format=%B -n 1 "$COMMIT_HASH")
-            cat <<EOT >> ./gh-pages/index.html
-          <li class="p-4 bg-background-light dark:bg-background-dark rounded-md flex items-center justify-between hover:shadow-lg transition-shadow duration-300">
-          <div class="flex items-center">
-          <span class="material-icons text-green-500 mr-3">check_circle</span>
-          <div>
-          <a class="font-mono text-lg text-primary hover:underline" href="./$COMMIT_HASH/">$COMMIT_HASH</a>
-          <p class="text-sm text-subtle-light dark:text-subtle-dark">$COMMIT_MSG</p>
-          </div>
-          </div>
-          </li>
-          EOT
+            # Only process if it looks like a short commit hash
+            if [[ "$COMMIT_HASH" =~ ^[a-f0-9]{7}$ ]]; then
+              COMMIT_MSG=$(git log --format=%B -n 1 -- "$COMMIT_HASH")
+              cat <<EOT >> ./gh-pages/index.html
+            <li class="p-4 bg-background-light dark:bg-background-dark rounded-md flex items-center justify-between hover:shadow-lg transition-shadow duration-300">
+            <div class="flex items-center">
+            <span class="material-icons text-green-500 mr-3">check_circle</span>
+            <div>
+            <a class="font-mono text-lg text-primary hover:underline" href="./$COMMIT_HASH/">$COMMIT_HASH</a>
+            <p class="text-sm text-subtle-light dark:text-subtle-dark">$COMMIT_MSG</p>
+            </div>
+            </div>
+            </li>
+EOT
+            fi
           done
 
           # Write bottom part of the new index.html
