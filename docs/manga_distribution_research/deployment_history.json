@@ -1,5 +1,16 @@
 [
   {
+    "hash": "f4f120a",
+    "message": "Feat: Add DSINE minimal test visualizations [publish]",
+    "timestamp": "",
+    "results": {
+      "original": "f4f120a/original.png",
+      "line_art": "f4f120a/line_art.png",
+      "polygons": "f4f120a/polygons.png",
+      "vector": "f4f120a/vector.svg"
+    }
+  },
+  {
     "hash": "48668af",
     "message": "Test: Duplicate header to test CI/CD [publish]",
     "timestamp": "",
