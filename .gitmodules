@@ -1,0 +1,9 @@
+[submodule "AXIS/models/VideoPose3D"]
+    path = AXIS/models/VideoPose3D
+    url = https://github.com/facebookresearch/VideoPose3D.git
+[submodule "AXIS/models/lightweight-human-pose-estimation-3d-demo"]
+    path = AXIS/models/lightweight-human-pose-estimation-3d-demo
+    url = https://github.com/Daniil-Osokin/lightweight-human-pose-estimation-3d-demo.git
+[submodule "AXIS/models/VIBE"]
+    path = AXIS/models/VIBE
+    url = https://github.com/mkocabas/VIBE.git
