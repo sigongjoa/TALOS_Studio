@@ -34,6 +34,13 @@ jobs:
           # Use a token with write permissions
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Clean .gitmodules from .history if exists
+        run: |
+          if [ -f .history/.gitmodules ]; then
+            rm .history/.gitmodules
+            echo "Removed .history/.gitmodules to prevent submodule errors."
+          fi
+
       - name: Install jq
         uses: dcarbone/install-jq-action@v2.1.0
         with:
