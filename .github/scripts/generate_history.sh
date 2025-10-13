@@ -94,7 +94,8 @@ cat <<'EOF' >> "$HISTORY_ROOT/index.html"
 <body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased">
 <div class="container mx-auto px-4 py-8">
 <header class="mb-8">
-<h1 class="text-4xl font-bold font-display text-text-light dark:text-text-dark">Research Deployment History</h1>
+<h1 class="text-4xl font-bold font-display text-text-light dark:text-text-dark">TEST: Title 1</h1>
+<h1 class="text-4xl font-bold font-display text-text-light dark:text-text-dark">TEST: Title 2</h1>
 <p class="text-lg text-subtle-light dark:text-subtle-dark mt-2">A versioned archive of all research deployments for the "Manga Image Distribution" project.</p>
 </header>
 <main>
