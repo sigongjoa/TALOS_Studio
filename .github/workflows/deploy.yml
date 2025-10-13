@@ -20,11 +20,10 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main branch (for source code)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetch all history for git log
-          submodules: false # Explicitly disable submodule processing
+          submodules: 'false'
 
       - name: Checkout history branch (for deployment content)
         uses: actions/checkout@v4
