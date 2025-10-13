@@ -51,3 +51,5 @@ Thumbs.db
 
 # Ignore AI library source code and environments
 /line_detection_comparison/libs/
+
+AXIS/models/
