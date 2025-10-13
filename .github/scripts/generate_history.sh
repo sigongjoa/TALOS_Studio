@@ -131,8 +131,7 @@ cat <<EOF >> "$HISTORY_ROOT/index.html"
 <div class="mt-12">
 <h2 class="text-3xl font-bold font-display mb-6">Latest Visualization Result</h2>
 <div class="bg-card-light dark:bg-card-dark p-1 sm:p-2 rounded-lg shadow-md border border-border-light dark:border-border-dark">
-<iframe src="https://sigongjoa.github.io/TALOS_Studio/$LATEST_SHA/" title="Latest Visualization Result"></iframe>
-</div>
+          <iframe src="https://sigongjoa.github.io/TALOS_Studio/$LATEST_SHA/index.html" title="Latest Visualization Result"></iframe></div>
 </div>
 </main>
 </div>
