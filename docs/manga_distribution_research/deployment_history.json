@@ -1,5 +1,16 @@
 [
   {
+    "hash": "48668af",
+    "message": "Test: Duplicate header to test CI/CD [publish]",
+    "timestamp": "",
+    "results": {
+      "original": "48668af/original.png",
+      "line_art": "48668af/line_art.png",
+      "polygons": "48668af/polygons.png",
+      "vector": "48668af/vector.svg"
+    }
+  },
+  {
     "hash": "4a18d8b",
     "message": "Feat: Replace custom vectorization with VTracer library [publish]",
     "timestamp": "",
