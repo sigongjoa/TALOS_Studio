@@ -24,12 +24,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Fetch all history for git log
+          submodules: false # Explicitly disable submodule processing
 
       - name: Checkout history branch (for deployment content)
         uses: actions/checkout@v4
         with:
           ref: history
           path: .history
+          submodules: false # Explicitly disable submodule processing
           # Use a token with write permissions
           token: ${{ secrets.GITHUB_TOKEN }}
 
