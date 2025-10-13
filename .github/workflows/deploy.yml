@@ -20,6 +20,12 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Remove .gitmodules before checkout (preemptive)
+        run: |
+          if [ -f .gitmodules ]; then
+            rm .gitmodules
+            echo "Removed .gitmodules from workspace before checkout."
+          fi
       - name: Checkout
         uses: actions/checkout@v4
         with:
