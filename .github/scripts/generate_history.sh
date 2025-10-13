@@ -12,7 +12,6 @@ SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
 ASSET_DIR="$HISTORY_ROOT/$SHORT_SHA"
 mkdir -p "$ASSET_DIR"
 cp -a ./output_visualizations/* "$ASSET_DIR/" 2>/dev/null || echo "No visualization output to copy."
-ls -R "$ASSET_DIR"
 
 # --- Check for [publish] flag and update history file ---
 if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
