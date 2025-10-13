@@ -36,6 +36,11 @@ jobs:
       - name: Setup jq
         uses: dblock/setup-jq@v2
 
+      - name: Debug PATH and jq installation
+        run: |
+          echo "PATH: $PATH"
+          which jq
+
       - name: Prepare deployment files
         run: bash .github/scripts/generate_history.sh
         env:
