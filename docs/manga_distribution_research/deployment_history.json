@@ -1,0 +1,13 @@
+[
+  {
+    "hash": "4a18d8b",
+    "message": "Feat: Replace custom vectorization with VTracer library [publish]",
+    "timestamp": "",
+    "results": {
+      "original": "4a18d8b/original.png",
+      "line_art": "4a18d8b/line_art.png",
+      "polygons": "4a18d8b/polygons.png",
+      "vector": "4a18d8b/vector.svg"
+    }
+  }
+]
