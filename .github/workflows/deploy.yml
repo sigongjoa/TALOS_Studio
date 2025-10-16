@@ -52,6 +52,13 @@ jobs:
         with:
           python-version: '3.10' # Specify a version compatible with dependencies
 
+      - name: Debug file existence
+        run: |
+          ls -l line_detection_comparison/libs/SOLD2/requirements.txt
+          ls -l line_detection_comparison/libs/SOLD2/
+          ls -l line_detection_comparison/libs/
+          ls -l line_detection_comparison/
+
       - name: Install dependencies
         run: |
           python -m venv venv
