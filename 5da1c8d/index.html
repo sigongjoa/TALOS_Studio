@@ -1,0 +1,34 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line Detection Visualizations</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .grid-container { display: grid; grid-auto-rows: auto; gap: 10px; }
+        .grid-row { display: contents; }
+        .grid-item { border: 1px solid #ccc; padding: 10px; text-align: center; background-color: #fff; }
+        .grid-item img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+        .header { font-weight: bold; background-color: #e0e0e0; }
+        /* Set grid columns based on number of headers */
+        .grid-container { grid-template-columns: repeat(6, 1fr); }
+    </style>
+</head>
+<body>
+    <h1>Line Detection Visualizations</h1>
+    <div class="grid-container">
+        <div class="grid-item header">Original Image</div><div class="grid-item header">Manga Line Extraction</div><div class="grid-item header">Inverted B/W Lines</div><div class="grid-item header">Line Detection (SOLD2)</div><div class="grid-item header">Curve Detection (Canny)</div><div class="grid-item header">Depth/Normals (DSINE)</div>
+        <div class="grid-row">
+<div class="grid-item"><img src="image_{i+1:02d}/original.png" alt="Original Image"></div>
+<div class="grid-item">Not Generated</div>
+<div class="grid-item">Not Generated</div>
+<div class="grid-item">Not Generated</div>
+<div class="grid-item">Not Generated</div>
+<div class="grid-item"><img src="image_{i+1:02d}/dsine_detection.png" alt="Depth/Normals (DSINE)"></div>
+</div>
+
+    </div>
+</body>
+</html>
