@@ -34,10 +34,7 @@ fi
 rm -rf ./output_for_deployment
 mkdir -p ./output_for_deployment
 
-# Activate the virtual environment and run the comparison script
-source ./line_detection_comparison/venv/bin/activate
 MPLBACKEND=Agg python "$COMPARISON_SCRIPT" --input_image "$SELECTED_INPUT_IMAGE"
-deactivate
 
 # --- Create current deployment assets ---
 SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)

@@ -31,6 +31,14 @@ jobs:
         with:
           submodules: 'false'
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9' # Specify the Python version you are using
+
+      - name: Install Python dependencies
+        run: pip install -r ./line_detection_comparison/requirements.txt
+
       - name: Checkout history branch (for deployment content)
         uses: actions/checkout@v4
         with:
