@@ -6,6 +6,35 @@ set -ex
 # Define paths
 HISTORY_ROOT=".history"
 HISTORY_JSON_PATH="$HISTORY_ROOT/docs/manga_distribution_research/deployment_history.json"
+COMPARISON_SCRIPT="./line_detection_comparison/run_comparison.py"
+INPUT_IMAGES_DIR="./ref" # Assuming input images are in ref/
+
+# --- Select input image based on commit hash ---
+# Get a list of all image files in the INPUT_IMAGES_DIR
+INPUT_IMAGE_FILES=($(ls -1 "$INPUT_IMAGES_DIR"/*.jpg "$INPUT_IMAGES_DIR"/*.png 2>/dev/null || true))
+
+if [ ${#INPUT_IMAGE_FILES[@]} -eq 0 ]; then
+  echo "No input images found in $INPUT_IMAGES_DIR. Using default test_image.jpg."
+  SELECTED_INPUT_IMAGE="./line_detection_comparison/input/test_image.jpg"
+else
+  # Get the last 3 digits of the commit SHA as a number
+  SHA_NUM=$(echo $GITHUB_SHA | tail -c 4 | head -c 3 | tr -dc '0-9' | sed 's/^0*//')
+  if [ -z "$SHA_NUM" ]; then
+    SHA_NUM=0
+  fi
+  
+  # Use modulo to select an image from the array
+  IMAGE_INDEX=$(( SHA_NUM % ${#INPUT_IMAGE_FILES[@]} ))
+  SELECTED_INPUT_IMAGE="${INPUT_IMAGE_FILES[$IMAGE_INDEX]}"
+  echo "Selected input image for this deployment: $SELECTED_INPUT_IMAGE (index $IMAGE_INDEX)"
+fi
+
+# --- Run the comparison script with the selected image ---
+# Ensure output_for_deployment is clean before running
+rm -rf ./output_for_deployment
+mkdir -p ./output_for_deployment
+
+MPLBACKEND=Agg python3 "$COMPARISON_SCRIPT" --input_image "$SELECTED_INPUT_IMAGE"
 
 # --- Create current deployment assets ---
 SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
@@ -25,7 +54,7 @@ if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
                 --arg hash "$SHORT_SHA" \
                 --arg msg "$COMMIT_MSG_CLEAN" \
                 --arg ts "$TIMESTAMP" \
-                '{ hash: $hash, message: $msg, timestamp: $ts, results: { original: "\($hash)/original.png", line_art: "\($hash)/line_art.png", polygons: "\($hash)/polygons.png", vector: "\($hash)/vector.svg" } }')
+                '{ hash: $hash, message: $msg, timestamp: $ts, results: { original: "\($hash)/original.png", hawp_detection: "\($hash)/hawp_detection.png", lcnn_detection: "\($hash)/lcnn_detection.png", dsine_detection: "\($hash)/dsine_detection.png", montage: "\($hash)/montage.png" } }')
 
   # Create history file if it doesn't exist
   if [ ! -f "$HISTORY_JSON_PATH" ]; then

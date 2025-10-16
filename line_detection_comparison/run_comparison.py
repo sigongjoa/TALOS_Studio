@@ -163,6 +163,15 @@ def prepare_for_deployment():
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Run line detection comparison and prepare for deployment.")
+    parser.add_argument("--input_image", type=str, help="Path to the input image for comparison.")
+    args = parser.parse_args()
+
+    if args.input_image:
+        INPUT_IMAGE_PATH = args.input_image
+        INPUT_IMAGE_NAME = os.path.basename(args.input_image)
+
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     
     # Run all models
