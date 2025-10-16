@@ -10,19 +10,16 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-# Import helper inference functions
-from line_detection_comparison.run_manga_line_extraction import run_manga_line_extraction_inference
-from line_detection_comparison.run_sold2 import run_sold2_inference
-from line_detection_comparison.run_dsine import run_dsine_inference
+# General imports
 from AXIS.scripts.line_to_bezier import convert_lines_to_bezier
 
 # --- Configuration ---
 INPUT_IMAGE_PATHS = [
-    "/mnt/d/progress/TALOS_Studio/ref/9007332256_494354581_52d22d527725b5f1e148fbfc4cd38644.jpg",
-    "/mnt/d/progress/TALOS_Studio/ref/9007332256_494354581_55bd5db1c16c0c5d0878ec89a08eb0fa.jpg",
-    "/mnt/d/progress/TALOS_Studio/ref/9007332256_494354581_688778cbd035d6d37a3ffc3b408f1b40.jpg",
-    "/mnt/d/progress/TALOS_Studio/ref/9007332256_494354581_b4431b5b6edd1e0871d023193f40ffff.jpg",
-    "/mnt/d/progress/TALOS_Studio/ref/9007332256_494354581_fe61fe9b128055cdb3949527920d057d.jpg",
+    "/mnt/d/progress/TALOS_Studio/ref/image_01.jpg",
+    "/mnt/d/progress/TALOS_Studio/ref/image_02.jpg",
+    "/mnt/d/progress/TALOS_Studio/ref/image_03.jpg",
+    "/mnt/d/progress/TALOS_Studio/ref/image_04.jpg",
+    "/mnt/d/progress/TALOS_Studio/ref/image_05.jpg",
 ]
 OUTPUT_BASE_DIR = "output_visualizations"
 
@@ -38,6 +35,7 @@ def generate_panel_original(input_image_path, output_dir):
 
 def generate_panel_manga_lines(input_image_path, output_dir):
     """Generates the manga line extraction panel."""
+    from line_detection_comparison.run_manga_line_extraction import run_manga_line_extraction_inference
     filename = "manga_lines.png"
     output_path = os.path.join(output_dir, filename)
     run_manga_line_extraction_inference(input_image_path, output_path)
@@ -60,6 +58,7 @@ def generate_panel_inverted_lines(manga_line_image_path, output_dir):
 
 def generate_panel_sold2(manga_line_image_path, output_dir):
     """Generates the SOLD2 detection panel and Bezier curve data."""
+    from line_detection_comparison.run_sold2 import run_sold2_inference
     img_filename = "sold2_detection.png"
     json_filename = "sold2_bezier_curves.json"
     img_output_path = os.path.join(output_dir, img_filename)
@@ -91,16 +90,10 @@ def generate_panel_canny(manga_line_image_path, output_dir):
 
 def generate_panel_dsine(input_image_path, output_dir):
     """Generates the DSINE detection panel using the real model."""
+    from line_detection_comparison.run_dsine import run_dsine_inference
     filename = "dsine_detection.png"
     output_path = os.path.join(output_dir, filename)
-    try:
-        run_dsine_inference(input_image_path, output_path)
-    except Exception as e:
-        print(f"Error running DSINE inference: {e}")
-        # Create a dummy file to indicate failure
-        dummy_img = np.zeros((100, 100), dtype=np.uint8)
-        cv2.putText(dummy_img, 'Error', (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-        cv2.imwrite(output_path, dummy_img)
+    run_dsine_inference(input_image_path, output_path)
     return filename
 
 # --- HTML Generation ---
@@ -183,7 +176,7 @@ def generate_visualizations(models_to_run=None):
     all_image_data = {}
 
     for i, input_image_path in enumerate(INPUT_IMAGE_PATHS):
-        image_id = f"image_{i+1:02d}"
+        image_id = f"image_{{i+1:02d}}"
         output_sub_dir = os.path.join(OUTPUT_BASE_DIR, image_id)
         os.makedirs(output_sub_dir, exist_ok=True)
         

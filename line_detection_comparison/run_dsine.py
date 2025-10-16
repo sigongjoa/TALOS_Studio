@@ -30,7 +30,8 @@ def get_dsine_model():
         if not os.path.exists(ckpt_path):
             raise FileNotFoundError(f"DSINE model checkpoint not found at {ckpt_path}")
 
-        args = dsine_config.get_args(test=True)
+        config_file_path = os.path.join(DSINE_PATH, 'projects', 'dsine', 'experiments', 'exp001_cvpr2024', 'dsine.txt')
+        args = dsine_config.get_args(test=True, config_path=config_file_path)
         args.ckpt_path = ckpt_path # Override with the correct path
         
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
