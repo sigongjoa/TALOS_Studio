@@ -11,21 +11,21 @@ def run_dsine_minimal():
         sys.exit(1)
 
     original_cwd = os.getcwd()
-    sys.path.insert(0, dsine_library_root) # Add DSINE root to sys.path
-    os.chdir(dsine_library_root) # Change to DSINE root to run as module
-
+    
     # Set PYTHONPATH for the subprocess
     env = os.environ.copy()
     env["PYTHONPATH"] = dsine_library_root + os.pathsep + env.get("PYTHONPATH", "")
 
+    os.chdir(dsine_project_path) # Change to projects/dsine directory
+
     try:
-        print(f"Running test_minimal.py as a module from {os.getcwd()}")
+        print(f"Running test_minimal.py from {os.getcwd()} with PYTHONPATH set to {env['PYTHONPATH']}")
+        print(f"Expected ckpt_path: {os.path.join(os.getcwd(), './experiments/exp001_cvpr2024/dsine.txt')}") # This is not the ckpt_path, but the config file path
         
         command = [
             sys.executable, 
-            "-m", # Run as a module
-            "projects.dsine.test_minimal",
-            "./projects/dsine/experiments/exp001_cvpr2024/dsine.txt"
+            "test_minimal.py", # Execute directly
+            "./experiments/exp001_cvpr2024/dsine.txt"
         ]
         
         process = subprocess.run(command, capture_output=True, text=True, check=True, env=env)

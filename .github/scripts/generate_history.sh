@@ -11,7 +11,7 @@ HISTORY_JSON_PATH="$HISTORY_ROOT/docs/manga_distribution_research/deployment_his
 SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
 ASSET_DIR="$HISTORY_ROOT/$SHORT_SHA"
 mkdir -p "$ASSET_DIR"
-cp -a ./output_visualizations/* "$ASSET_DIR/" 2>/dev/null || echo "No visualization output to copy."
+cp -a ./output_for_deployment/* "$ASSET_DIR/" 2>/dev/null || echo "No deployment output to copy."
 
 # --- Check for [publish] flag and update history file ---
 if [[ "$COMMIT_MSG" == *"[publish]"* ]]; then
