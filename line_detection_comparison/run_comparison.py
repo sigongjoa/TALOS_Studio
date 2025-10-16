@@ -2,6 +2,8 @@ import subprocess
 import os
 import shutil
 import glob
+import matplotlib
+matplotlib.use('Agg')
 
 # Define the project base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -71,9 +73,12 @@ def run_dsine():
     print("--- Running DSINE (Minimal) Inference ---")
     env = os.environ.copy()
     env["PYTHONPATH"] = DSINE_LIB_ROOT + os.pathsep + env.get("PYTHONPATH", "")
+    output_path = os.path.join(DSINE_OUTPUT_SRC_DIR, "dsine_detection.png")
     command = [
         "python3", "test_minimal.py",
-        "./experiments/exp001_cvpr2024/dsine.txt"
+        "./experiments/exp001_cvpr2024/dsine.txt",
+        "--img_path", INPUT_IMAGE_PATH,
+        "--output_path", output_path
     ]
     try:
         # Clear previous DSINE output
@@ -84,15 +89,9 @@ def run_dsine():
         subprocess.run(command, check=True, cwd=DSINE_PROJECT_PATH, env=env)
         print("--- DSINE Inference Complete ---")
 
-        # Find the newest file in the DSINE output directory
-        list_of_files = glob.glob(os.path.join(DSINE_OUTPUT_SRC_DIR, '*'))
-        if not list_of_files:
-            raise FileNotFoundError("DSINE output file not found.")
-        latest_file = max(list_of_files, key=os.path.getctime)
-
         # Move and rename output file
         dsine_output = os.path.join(OUTPUT_DIR, "dsine_detection.png")
-        shutil.copy(latest_file, dsine_output)
+        shutil.copy(output_path, dsine_output)
         print(f"Copied and renamed DSINE output to {dsine_output}")
 
     except Exception as e:

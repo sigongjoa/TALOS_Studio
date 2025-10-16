@@ -2,6 +2,8 @@ import os
 import numpy as np
 import cv2
 import torch
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from deeplsd.utils.tensor import batch_to_device

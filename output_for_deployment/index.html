@@ -4,31 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Line Detection Visualizations</title>
+    <title>Line Detection Comparison</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
-        .grid-container { display: grid; grid-auto-rows: auto; gap: 10px; }
-        .grid-row { display: contents; }
-        .grid-item { border: 1px solid #ccc; padding: 10px; text-align: center; background-color: #fff; }
-        .grid-item img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
-        .header { font-weight: bold; background-color: #e0e0e0; }
-        /* Set grid columns based on number of headers */
-        .grid-container { grid-template-columns: repeat(6, 1fr); }
+        body { font-family: sans-serif; margin: 2em; background-color: #f8f9fa; color: #212529; }
+        .container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2em; }
+        .card { background-color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
+        .card h2 { font-size: 1.2em; padding: 1em; margin: 0; border-bottom: 1px solid #e9ecef; }
+        .card img { max-width: 100%; height: auto; display: block; }
+        h1 { text-align: center; margin-bottom: 2em; }
     </style>
 </head>
 <body>
-    <h1>Line Detection Visualizations</h1>
-    <div class="grid-container">
-        <div class="grid-item header">Original Image</div><div class="grid-item header">Manga Line Extraction</div><div class="grid-item header">Inverted B/W Lines</div><div class="grid-item header">Line Detection (SOLD2)</div><div class="grid-item header">Curve Detection (Canny)</div><div class="grid-item header">Depth/Normals (DSINE)</div>
-        <div class="grid-row">
-<div class="grid-item"><img src="image_{i+1:02d}/original.png" alt="Original Image"></div>
-<div class="grid-item">Not Generated</div>
-<div class="grid-item">Not Generated</div>
-<div class="grid-item">Not Generated</div>
-<div class="grid-item">Not Generated</div>
-<div class="grid-item"><img src="image_{i+1:02d}/dsine_detection.png" alt="Depth/Normals (DSINE)"></div>
-</div>
-
+    <h1>Line Detection Model Comparison</h1>
+    <div class="container">
+        <div class="card"><h2>Original Image</h2><img src="original.png" alt="Original"></div>
+        <div class="card"><h2>Montage (HAWP vs L-CNN)</h2><img src="montage.png" alt="Montage"></div>
+        <div class="card"><h2>HAWP Detection</h2><img src="hawp_detection.png" alt="HAWP"></div>
+        <div class="card"><h2>L-CNN Detection</h2><img src="lcnn_detection.png" alt="L-CNN"></div>
+        <div class="card"><h2>DSINE Detection</h2><img src="dsine_detection.png" alt="DSINE"></div>
     </div>
 </body>
 </html>

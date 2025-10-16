@@ -30,6 +30,7 @@ def run_scalelsd(input_image_path, output_dir):
         "--img", input_image_path,
         "--saveto", output_dir,
         "--ext", "png",
+        "--disable-show",
     ]
     
     try:
