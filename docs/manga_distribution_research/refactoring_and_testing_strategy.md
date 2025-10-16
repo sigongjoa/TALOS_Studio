@@ -1,85 +1,75 @@
-# Refactoring and Testing Strategy for Visualization Models
+# Local Build and Pre-built Deployment Strategy
 
-This document outlines the refactored code structure for the visualization generation pipeline and the strategy for testing models independently.
+This document outlines the development and deployment workflow for this project. The core concept is a **pre-built deployment strategy**, where visualization results are generated locally and then committed to the repository for the CI/CD pipeline to deploy.
 
-## 1. Problem: Monolithic Structure
+## 1. Core Concept: Pre-built Deployment
 
-The original `generate_visualizations.py` script was a single, monolithic function. This approach had several drawbacks:
+The CI/CD pipeline's role is **only to deploy**. It does **not** build, test, or generate any files. All visualization assets (HTML, images) must be generated on a developer's local machine, added to Git, and then pushed. This makes the CI/CD process fast and simple, as it only needs to take the pre-built files and publish them to GitHub Pages.
 
-- **Inefficient Testing:** Running `pytest` executed the entire pipeline, including already verified models like `SOLD2`, every single time. This was slow and inefficient.
-- **High Coupling:** All model processing steps were tightly coupled. A failure in one model (e.g., a missing dependency for `SOLD2`) prevented all other models (like `DSINE`) from being tested.
-- **Poor Maintainability:** Adding a new model required modifying the central function, increasing the risk of introducing bugs into existing, working code.
+## 2. Developer's Local Workflow
 
-## 2. Solution: Modular Structure
+To update the deployed website with new visualization results, follow these steps on your local machine.
 
-To solve these issues, the code was refactored into a modular, function-based pipeline.
+### Step 1: Set Up Local Environment
 
-### 2.1. `generate_visualizations.py`
+Ensure your local virtual environment is set up and all dependencies are installed.
 
-The main script is now composed of small, independent functions, each responsible for generating a single panel in the visualization:
-
-- `generate_panel_original()`
-- `generate_panel_manga_lines()`
-- `generate_panel_inverted_lines()`
-- `generate_panel_sold2()`
-- `generate_panel_canny()`
-- `generate_panel_dsine()` (New placeholder)
-- `generate_html_report()`
-
-A master function, `generate_visualizations(models_to_run=None)`, orchestrates these smaller functions. It accepts a list of model names to run, allowing for selective execution. If no list is provided, it runs all models by default.
-
-### 2.2. `test_visualizations.py`
-
-The test script was updated to mirror the new modular structure:
-
-- It now contains individual test functions for each panel (e.g., `test_panel_original()`, `test_panel_dsine()`).
-- This allows for targeted testing of a single model's functionality.
-- A dedicated test, `test_generate_visualizations_for_single_model`, was added to verify that the main orchestrator can run a single model pipeline (like `DSINE`) without executing others.
-- Unrelated tests, like `test_panel_sold2`, can be skipped using pytest markers (`@pytest.mark.skip`) to focus on the model currently under development.
-
-## 3. Development and Testing Workflow
-
-### 3.1. Virtual Environment
-
-All Python dependencies for this project should be installed in the dedicated virtual environment.
-
-- **Location:** `line_detection_comparison/venv/`
+- **Virtual Environment Location:** `line_detection_comparison/venv/`
 - **Activation:**
   ```bash
   source /mnt/d/progress/TALOS_Studio/line_detection_comparison/venv/bin/activate
   ```
 - **Dependency Installation:**
-  If a model (like `SOLD2` or `DSINE`) has a `requirements.txt` file, install its dependencies using pip:
+  Install all necessary packages. The `SOLD2` requirements file is a good starting point.
   ```bash
-  pip install -r /path/to/model/requirements.txt
-  ```
-  For single packages:
-  ```bash
-  pip install <package_name>
+  pip install -r line_detection_comparison/libs/SOLD2/requirements.txt
   ```
 
-### 3.2. Running Tests
+### Step 2: Generate Visualization Results
 
-With the new structure, you can run tests for a specific model.
+Run the main visualization script. This will execute all configured models (like `SOLD2` and `DSINE`) and place the results in the `output_visualizations` directory.
 
-- **To run only the DSINE tests:**
-  You can use pytest's `-k` flag to select tests by name.
-  ```bash
-  # Ensure you are in the root directory /mnt/d/progress/TALOS_Studio/
-  # Make sure the virtualenv is NOT active, as we will call the python from it directly.
-  
-  PYTHONPATH="line_detection_comparison/libs/SOLD2:line_detection_comparison/libs/DSINE" /mnt/d/progress/TALOS_Studio/line_detection_comparison/venv/bin/python -m pytest -k "dsine"
-  ```
-  This command will execute `test_panel_dsine` and `test_generate_visualizations_for_single_model`.
+```bash
+python generate_visualizations.py
+```
 
-- **To run all tests (and skip marked tests):**
-  ```bash
-  PYTHONPATH="line_detection_comparison/libs/SOLD2:line_detection_comparison/libs/DSINE" /mnt/d/progress/TALOS_Studio/line_detection_comparison/venv/bin/python -m pytest
-  ```
+*(You can also run `pytest` to generate the results, but be aware that the test environment is configured to clean up the output directory after the run.)*
 
-## 4. How to Add a New Model (e.g., `NewModel`)
+### Step 3: Prepare Files for Deployment
 
-1.  **Create Inference Script:** Add your model's inference logic in a script, e.g., `line_detection_comparison/run_newmodel.py`.
-2.  **Add Panel Function:** In `generate_visualizations.py`, create a new function `generate_panel_newmodel(...)` that calls your inference script.
-3.  **Update Orchestrator:** Add `'newmodel'` to the `generate_visualizations` function's logic.
-4.  **Add a Test:** In `test_visualizations.py`, add a new test function `test_panel_newmodel()` to test your new panel in isolation.
+The deployment script looks for assets in the `output_for_deployment` directory. You must copy your new results into this directory.
+
+```bash
+# Remove the old deployment files
+rm -rf ./output_for_deployment/*
+
+# Copy the new results from output_visualizations to output_for_deployment
+mv ./output_visualizations/* ./output_for_deployment/
+```
+
+**Important:** Ensure the `output_for_deployment` directory contains the `index.html` and the `image_01`, `image_02`, etc. subdirectories before proceeding.
+
+### Step 4: Commit and Push the Results
+
+Add all changes, including the newly copied files in `output_for_deployment`, to Git and push them to the repository.
+
+```bash
+# Add all source code and the new deployment files
+git add .
+
+# Commit the changes
+git commit -m "feat: Update visualization results with new DSINE output"
+
+# Push to the remote repository
+git push
+```
+
+## 3. CI/CD Workflow (`deploy.yml`)
+
+Once you push your commit, the CI/CD workflow will automatically handle the rest.
+
+1.  **Trigger:** The workflow starts on a push to the `main` or `master` branch.
+2.  **Checkout:** It checks out the repository, which now includes your committed, pre-built files in `output_for_deployment`.
+3.  **Prepare & Deploy:** It runs the `generate_history.sh` script. This script takes the content from your `output_for_deployment` folder, archives it, updates the main `index.html` history log, and pushes the final result to the `gh-pages` branch for deployment.
+
+This process ensures that what you build and test locally is exactly what gets deployed.

@@ -47,38 +47,6 @@ jobs:
             echo "Removed .history/.gitmodules to prevent submodule errors."
           fi
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10' # Specify a version compatible with dependencies
-
-      - name: Debug file existence
-        run: |
-          ls -l line_detection_comparison/libs/SOLD2/requirements.txt
-          ls -l line_detection_comparison/libs/SOLD2/
-          ls -l line_detection_comparison/libs/
-          ls -l line_detection_comparison/
-
-      - name: Install dependencies
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install -r line_detection_comparison/libs/SOLD2/requirements.txt
-
-      - name: Run tests and generate visualizations
-        run: |
-          source venv/bin/activate
-          # Set PYTHONPATH for imports to work correctly
-          export PYTHONPATH="${PYTHONPATH}:./line_detection_comparison/libs/SOLD2:./line_detection_comparison/libs/DSINE"
-          pytest
-
-      - name: Replace deployment assets with test results
-        run: |
-          echo "Replacing deployment assets with latest test run results..."
-          rm -rf ./output_for_deployment
-          mv ./output_visualizations ./output_for_deployment
-          echo "Replacement complete."
-
       - name: Install jq
         uses: dcarbone/install-jq-action@v2.1.0
         with:

@@ -25,10 +25,9 @@ def setup_teardown_output_dir():
         shutil.rmtree(OUTPUT_BASE_DIR)
     os.makedirs(os.path.join(OUTPUT_BASE_DIR, TEST_IMAGE_ID))
     yield
-    # Teardown: Clean up output directory after tests, but not in CI
-    if not os.environ.get('CI'):
-        if os.path.exists(OUTPUT_BASE_DIR):
-            shutil.rmtree(OUTPUT_BASE_DIR)
+    # Teardown: Clean up output directory after tests
+    if os.path.exists(OUTPUT_BASE_DIR):
+        shutil.rmtree(OUTPUT_BASE_DIR)
 
 @pytest.fixture(scope="module")
 def manga_line_output(setup_teardown_output_dir):
