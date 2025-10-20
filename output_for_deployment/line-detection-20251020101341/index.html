@@ -1,0 +1,23 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line Detection Comparison</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 font-sans p-8">
+    <header class="text-center mb-12">
+        <h1 class="text-4xl font-bold">Line Detection Model Comparison</h1>
+        <p class="text-lg text-slate-600">Source: test_image.jpg | Generated: 20251020101341</p>
+    </header>
+    <main><div class="card-container"><div class="card"><h2>Original: test_image.jpg</h2><img src="original.png" alt="Original"></div><div class="card"><h2>DSINE</h2><img src="dsine_detection.png" alt="DSINE Detection"></div><div class="card"><h2>HAWP</h2><img src="hawp_detection.png" alt="HAWP Detection"></div><div class="card"><h2>LCNN</h2><img src="lcnn_detection.png" alt="LCNN Detection"></div><div class="card"><h2>LETR</h2><img src="letr_detection.png" alt="LETR Detection"></div><div class="card"><h2>MANGA_LINE_EXTRACTION</h2><img src="manga_line_extraction_detection.png" alt="MANGA_LINE_EXTRACTION Detection"></div><div class="card"><h2>SCALELSD</h2><img src="scalelsd_detection.png" alt="SCALELSD Detection"></div><div class="card"><h2>SOLD2</h2><img src="sold2_detection.png" alt="SOLD2 Detection"></div></div></main>
+    <style>
+        .card-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5em; }
+        .card { background-color: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; }
+        .card h2 { font-size: 1.1em; font-weight: 600; padding: 0.8em 1em; margin: 0; border-bottom: 1px solid #e9ecef; background-color: #f8f9fa; }
+        .card img { max-width: 100%; height: auto; display: block; }
+    </style>
+</body>
+</html>

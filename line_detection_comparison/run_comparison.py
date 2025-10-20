@@ -106,6 +106,8 @@ def create_montage():
         "python3", montage_script, "--input", INPUT_IMAGE_PATH, "--dir", OUTPUT_DIR
     ], check=True)
 
+
+
 def prepare_for_deployment():
     print("\n--- Preparing Files for Deployment ---")
     # Clean and create deployment directory
