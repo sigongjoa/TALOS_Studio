@@ -1,0 +1,17 @@
+feat: Implement dynamic deployment page generation
+
+This commit introduces a new workflow for deploying line detection comparison results:
+
+- **`line_detection_comparison/package_for_deployment.py`**: A new script responsible for packaging existing model outputs into deployable web pages.
+  - It scans the `line_detection_comparison/output/` directory for `*_detection.png` files.
+  - For each detection result, it creates a dedicated, timestamped directory within `output_for_deployment/`.
+  - It generates an `index.html` for each model's page, which dynamically fetches its title and description from `output_for_deployment/pages.json` using JavaScript.
+  - It copies the original image and the model's detection image into the new page directory.
+  - It checks for and copies corresponding `*.json` metadata files (e.g., `sold2_detection.json` for `sold2_detection.png`) into the page directory, providing a download link in the HTML.
+  - It updates `output_for_deployment/pages.json` with entries for each newly generated model page.
+
+- **`line_detection_comparison/run_comparison.py`**: Reverted to its original state, focusing on running models for a single image and producing fixed-name output files. This aligns with the user's preference for manual model execution.
+
+- **`.github/workflows/deploy.yml`**: Reverted to its original state, solely responsible for deploying the contents of `output_for_deployment` to GitHub Pages, without triggering any build scripts.
+
+This workflow allows users to manually run line detection models, generate results, and then use `package_for_deployment.py` to prepare these results for deployment via CI/CD.
