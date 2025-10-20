@@ -1,0 +1,52 @@
+[
+    {
+        "title": "SOLD2 Detection",
+        "description": "Source: test_image.jpg | Updated: 20251020103345",
+        "path": "./sold2-20251020103345/"
+    },
+    {
+        "title": "SCALELSD Detection",
+        "description": "Source: test_image.jpg | Updated: 20251020103345",
+        "path": "./scalelsd-20251020103345/"
+    },
+    {
+        "title": "MANGA_LINE_EXTRACTION Detection",
+        "description": "Source: test_image.jpg | Updated: 20251020103345",
+        "path": "./manga_line_extraction-20251020103345/"
+    },
+    {
+        "title": "LETR Detection",
+        "description": "Source: test_image.jpg | Updated: 20251020103345",
+        "path": "./letr-20251020103345/"
+    },
+    {
+        "title": "LCNN Detection",
+        "description": "Source: test_image.jpg | Updated: 20251020103345",
+        "path": "./lcnn-20251020103345/"
+    },
+    {
+        "title": "HAWP Detection",
+        "description": "Source: test_image.jpg | Updated: 20251020103345",
+        "path": "./hawp-20251020103345/"
+    },
+    {
+        "title": "DSINE Detection",
+        "description": "Source: test_image.jpg | Updated: 20251020103345",
+        "path": "./dsine-20251020103345/"
+    },
+    {
+        "title": "Line Detection: test_image.jpg",
+        "description": "Comparison of models. Updated: 20251020101341",
+        "path": "./line-detection-20251020101341/"
+    },
+    {
+        "title": "Deployment: edecff8",
+        "description": "Migrated page from the previous deployment system.",
+        "path": "./edecff8/"
+    },
+    {
+        "title": "TripoSR Showcase",
+        "description": "Source: ref/image_01.jpg to image_05.jpg | Updated: 20251020",
+        "path": "./triposr-showcase/"
+    }
+]

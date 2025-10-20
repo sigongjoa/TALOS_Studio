@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Showcase: triposr-image03-temp</title>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        #viewer-container {
+            width: 80%;
+            height: 600px;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+        }
+        h1, h2 { text-align: center; }
+        .image-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>3D Model Showcase: triposr-image03-temp</h1>
+
+    <h2>Interactive 3D Model</h2>
+    <div id="viewer-container">
+        <model-viewer src="0/mesh.obj"
+                      alt="A 3D model of triposr-image03-temp"
+                      ar
+                      ar-modes="webxr scene-viewer quick-look"
+                      camera-controls
+                      poster="poster.webp"
+                      shadow-intensity="1"
+                      environment-image="neutral"
+                      auto-rotate>
+        </model-viewer>
+    </div>
+
+    <h2>Original Input Image</h2>
+    <div style="text-align: center; margin-top: 20px;">
+        <img src="0/input.png" width="400">
+    </div>
+
+    <h2>Rendered Views</h2>
+    <div class="image-gallery">
+        <img src="0/render_000.png" width="200" style="margin: 10px;"><img src="0/render_001.png" width="200" style="margin: 10px;"><img src="0/render_002.png" width="200" style="margin: 10px;"><img src="0/render_003.png" width="200" style="margin: 10px;"><img src="0/render_004.png" width="200" style="margin: 10px;"><img src="0/render_005.png" width="200" style="margin: 10px;"><img src="0/render_006.png" width="200" style="margin: 10px;"><img src="0/render_007.png" width="200" style="margin: 10px;"><img src="0/render_008.png" width="200" style="margin: 10px;"><img src="0/render_009.png" width="200" style="margin: 10px;"><img src="0/render_010.png" width="200" style="margin: 10px;"><img src="0/render_011.png" width="200" style="margin: 10px;"><img src="0/render_012.png" width="200" style="margin: 10px;"><img src="0/render_013.png" width="200" style="margin: 10px;"><img src="0/render_014.png" width="200" style="margin: 10px;"><img src="0/render_015.png" width="200" style="margin: 10px;"><img src="0/render_016.png" width="200" style="margin: 10px;"><img src="0/render_017.png" width="200" style="margin: 10px;"><img src="0/render_018.png" width="200" style="margin: 10px;"><img src="0/render_019.png" width="200" style="margin: 10px;"><img src="0/render_020.png" width="200" style="margin: 10px;"><img src="0/render_021.png" width="200" style="margin: 10px;"><img src="0/render_022.png" width="200" style="margin: 10px;"><img src="0/render_023.png" width="200" style="margin: 10px;"><img src="0/render_024.png" width="200" style="margin: 10px;"><img src="0/render_025.png" width="200" style="margin: 10px;"><img src="0/render_026.png" width="200" style="margin: 10px;"><img src="0/render_027.png" width="200" style="margin: 10px;"><img src="0/render_028.png" width="200" style="margin: 10px;"><img src="0/render_029.png" width="200" style="margin: 10px;">
+    </div>
+
+</body>
+</html>
