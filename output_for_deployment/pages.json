@@ -45,33 +45,8 @@
         "path": "./edecff8/"
     },
     {
-        "title": "TripoSR: triposr-output-temp",
-        "path": "triposr-output-temp/index.html",
-        "date": "2025-10-20"
-    },
-    {
-        "title": "TripoSR: triposr-image01-temp",
-        "path": "triposr-image01-temp/index.html",
-        "date": "2025-10-20"
-    },
-    {
-        "title": "TripoSR: triposr-image02-temp",
-        "path": "triposr-image02-temp/index.html",
-        "date": "2025-10-20"
-    },
-    {
-        "title": "TripoSR: triposr-image03-temp",
-        "path": "triposr-image03-temp/index.html",
-        "date": "2025-10-20"
-    },
-    {
-        "title": "TripoSR: triposr-image04-temp",
-        "path": "triposr-image04-temp/index.html",
-        "date": "2025-10-20"
-    },
-    {
-        "title": "TripoSR: triposr-image05-temp",
-        "path": "triposr-image05-temp/index.html",
-        "date": "2025-10-20"
+        "title": "TripoSR Showcase",
+        "description": "Source: ref/image_01.jpg to image_05.jpg | Updated: 20251020",
+        "path": "./triposr-showcase/"
     }
 ]
