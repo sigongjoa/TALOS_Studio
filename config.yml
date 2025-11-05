@@ -1,0 +1,36 @@
+# Global pipeline configuration
+pipeline_temp_dir: temp
+output_deployment_dir: output_for_deployment
+
+# Configuration for Track A (View Synthesis Model)
+track_a_config:
+  model_name: zero-1-to-3
+  quantization: 4-bit
+  lora_enabled: true
+  output_resolution: 512
+  num_views: 16
+
+# Configuration for Track B (Prompt-based Generation Model)
+track_b_config:
+  model_name: stable-diffusion-v1.5
+  controlnet_model: depth-v1.1
+  llm_prompt_generator: true
+  output_resolution: 512
+  num_views: 16
+
+# Configuration for 3D Reconstruction
+reconstruction_config:
+  method: 3d-gaussian-splatting
+  iterations: 7000
+  learning_rate: 0.0001
+
+# Configuration for 2D Rendering
+rendering_config:
+  renderer: blender
+  camera_angle: [30, 45, 0] # Example: [elevation, azimuth, roll]
+  output_resolution: 1024
+
+# Configuration for Packaging Results
+packaging_config:
+  html_template: templates/index.html
+  comparison_mode: side-by-side

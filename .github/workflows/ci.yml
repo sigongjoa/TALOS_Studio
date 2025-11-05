@@ -1,11 +1,13 @@
-name: CD Pipeline
+name: CI Pipeline
 
 on:
   push:
+    branches: [ main, develop ]
+  pull_request:
     branches: [ main ]
 
 jobs:
-  deploy:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -35,15 +37,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run Full PoC Pipeline
-      run: python run_pipeline.py --config config.yml --input_image input/original.png
+    - name: Run Linter (Ruff)
+      run: pip install ruff && ruff check .
 
-    - name: Run Acceptance Tests
-      run: pytest tests/acceptance
-
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./output_for_deployment
-        publish_branch: gh-pages
+    - name: Run Unit and Integration Tests
+      run: pytest tests/unit tests/integration

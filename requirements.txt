@@ -1,0 +1,13 @@
+PyYAML==6.0.1
+argparse==1.4.0
+# Placeholder for 3D Gaussian Splatting related libraries
+# e.g., torch==2.0.1+cu118
+# e.g., torchvision==0.15.2+cu118
+# e.g., diff-gaussian-rasterization
+# e.g., simple-knn
+
+# Placeholder for Blender Python API if used outside Blender
+# (usually not installed via pip, but bundled with Blender)
+
+# For Pydantic/dataclasses for schema validation (if implemented)
+pydantic==2.4.2

@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Step 1 Output: View Synthesis Result",
+  "description": "Defines the structure for the output of the multi-view image generation step. It includes a list of generated images and their corresponding camera poses.",
+  "type": "object",
+  "properties": {
+    "images": {
+      "description": "An array of file paths to the generated view images.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "Relative path to a PNG image file.",
+        "pattern": "^\\S+\\.png$"
+      },
+      "minItems": 1
+    },
+    "camera_poses": {
+      "description": "An array of camera poses for each corresponding image. Each pose is a 4x4 transformation matrix (row-major order).",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "minItems": 4,
+        "maxItems": 4
+      }
+    }
+  },
+  "required": [
+    "images",
+    "camera_poses"
+  ],
+  "if": {
+    "properties": {
+      "images": { "type": "array" },
+      "camera_poses": { "type": "array" }
+    }
+  },
+  "then": {
+    "properties": {
+      "images": { "minItems": { "$data": "1/camera_poses/length" } },
+      "camera_poses": { "minItems": { "$data": "1/images/length" } }
+    }
+  }
+}
