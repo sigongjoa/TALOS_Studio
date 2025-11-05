@@ -1,17 +1,28 @@
-feat: Implement dynamic deployment page generation
+feat: Implement initial PoC pipeline structure and documentation
 
-This commit introduces a new workflow for deploying line detection comparison results:
+This commit introduces the foundational structure for the Manga to 3D PoC pipeline,
+including core scripts, configuration, and a comprehensive testing setup.
 
-- **`line_detection_comparison/package_for_deployment.py`**: A new script responsible for packaging existing model outputs into deployable web pages.
-  - It scans the `line_detection_comparison/output/` directory for `*_detection.png` files.
-  - For each detection result, it creates a dedicated, timestamped directory within `output_for_deployment/`.
-  - It generates an `index.html` for each model's page, which dynamically fetches its title and description from `output_for_deployment/pages.json` using JavaScript.
-  - It copies the original image and the model's detection image into the new page directory.
-  - It checks for and copies corresponding `*.json` metadata files (e.g., `sold2_detection.json` for `sold2_detection.png`) into the page directory, providing a download link in the HTML.
-  - It updates `output_for_deployment/pages.json` with entries for each newly generated model page.
+Key changes include:
+- **Core Pipeline (`run_pipeline.py`):** Implemented the main orchestration script with
+  placeholder functions for view synthesis, 3D reconstruction, rendering, and packaging.
+- **Configuration (`config.yml`):** Added a central configuration file for pipeline parameters.
+- **Dependencies (`requirements.txt`):** Initialized Python dependency list.
+- **Testing Infrastructure (`tests/`):** Created unit, integration, and acceptance test
+  directories with placeholder tests to validate pipeline components and end-to-end flow.
+- **CI/CD Workflows (`.github/workflows/ci.yml`, `deploy.yml`):** Established GitHub Actions
+  workflows for continuous integration (fast tests) and continuous deployment (full pipeline
+  execution and GitHub Pages deployment), explicitly excluding Docker.
+- **Documentation Updates:**
+    - `detailed_specifications.md`: Added concrete environment specifications and referenced
+      the new JSON schema for data contracts.
+    - `ci_cd_deployment_plan.md`: Revised to reflect a non-Docker CI/CD strategy, clarified
+      CI/CD scope, and updated deployment artifacts to include multi-view images.
+    - `definition_of_done.md`: Clarified the scope of performance DoD.
+    - `process_and_workflow.md`: Replaced abstract data flow diagram with a detailed
+      textual description and added a manual local development environment setup guide.
+- **Data Schema (`docs/manga_to_3d_pipeline_feasibility/schemas/step1_output_schema.json`):
+  Created a concrete JSON schema for the output of the view synthesis step.
 
-- **`line_detection_comparison/run_comparison.py`**: Reverted to its original state, focusing on running models for a single image and producing fixed-name output files. This aligns with the user's preference for manual model execution.
-
-- **`.github/workflows/deploy.yml`**: Reverted to its original state, solely responsible for deploying the contents of `output_for_deployment` to GitHub Pages, without triggering any build scripts.
-
-This workflow allows users to manually run line detection models, generate results, and then use `package_for_deployment.py` to prepare these results for deployment via CI/CD.
+This commit addresses the critical inconsistencies and ambiguities identified in the
+project's documentation, providing a clear and actionable blueprint for further development.
