@@ -53,3 +53,7 @@ Thumbs.db
 /line_detection_comparison/libs/
 
 AXIS/models/
+
+# Generated output directories
+output_for_deployment/
+temp/

@@ -1,14 +1,10 @@
 PyYAML==6.0.1
 argparse==1.4.0
-pydantic==2.4.2
-
-# Core ML/DL Libraries for View Synthesis
-torch==2.0.1+cu118
-torchvision==0.15.2+cu118
+pydantic==1.10.13
+torch
+torchvision
 diffusers==0.21.4
 transformers==4.30.2
 accelerate==0.21.0
-xformers==0.0.20
+trimesh
 
-# Libraries for 3D Gaussian Splatting (using nerfstudio as a reference)
-nerfstudio==0.3.3
