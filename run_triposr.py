@@ -56,15 +56,15 @@ parser.add_argument(
 )
 parser.add_argument(
     "--device",
-    default="cuda:0",
+    default=None,  # Will auto-detect
     type=str,
-    help="Device to use. If no CUDA-compatible device is found, will fallback to 'cpu'. Default: 'cuda:0'",
+    help="Device to use ('cuda:0', 'cuda:1', 'cpu', etc.). If not specified, will auto-detect CUDA if available. Default: auto-detect",
 )
 parser.add_argument(
     "--pretrained_model_name_or_path",
     default="stabilityai/TripoSR",
     type=str,
-    help="Path to the pretrained model. Could be either a huggingface model id is or a local path. Default: 'stabilityai/TripoSR'",
+    help="Path to the pretrained model. Could be either a huggingface model id or a local path. Default: 'stabilityai/TripoSR'",
 )
 parser.add_argument(
     "--model_save_format",
@@ -84,8 +84,6 @@ parser.add_argument(
     type=float,
     help="Ratio of the foreground size to the image size. Only used when --no-remove-bg is not specified. Default: 0.85",
 )
-
-
 parser.add_argument(
     "--chunk_size",
     default=8192,
@@ -99,9 +97,58 @@ args = parser.parse_args()
 output_dir = args.output_dir
 os.makedirs(output_dir, exist_ok=True)
 
-device = args.device
-if not torch.cuda.is_available():
-    device = "cpu"
+# Auto-detect device if not specified
+def get_device(specified_device: str = None) -> str:
+    """
+    Determine the device to use for inference.
+
+    Args:
+        specified_device: User-specified device string
+
+    Returns:
+        Device string to use
+
+    Raises:
+        ValueError: If specified device is invalid
+    """
+    if specified_device is not None:
+        # Validate user specification
+        if "cuda" in specified_device:
+            if not torch.cuda.is_available():
+                logging.warning(
+                    f"CUDA not available, but '{specified_device}' was requested. "
+                    f"Falling back to CPU. Install CUDA drivers for GPU acceleration."
+                )
+                return "cpu"
+            # Parse cuda device number
+            try:
+                device_id = int(specified_device.split(":")[-1])
+                if device_id >= torch.cuda.device_count():
+                    logging.warning(
+                        f"Requested CUDA device {device_id} not available. "
+                        f"System has {torch.cuda.device_count()} CUDA devices. "
+                        f"Falling back to cuda:0"
+                    )
+                    return "cuda:0"
+            except (ValueError, IndexError):
+                pass
+        return specified_device
+
+    # Auto-detect
+    if torch.cuda.is_available():
+        device = "cuda:0"
+        gpu_name = torch.cuda.get_device_name(0)
+        logging.info(f"CUDA available. Using GPU: {gpu_name}")
+        return device
+    else:
+        logging.warning(
+            "CUDA not available. Using CPU for inference. "
+            "This will be very slow. Consider installing CUDA drivers."
+        )
+        return "cpu"
+
+
+device = get_device(args.device)
 
 timer.start("Initializing model")
 model = TSR.from_pretrained(
