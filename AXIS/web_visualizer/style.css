@@ -1,5 +1,0 @@
-body { font-family: system-ui, sans-serif; background: #f4f4f4; text-align: center; }
-#container { display: flex; justify-content: center; gap: 1rem; margin: 1rem; }
-.panel { border: 1px solid #ddd; padding: 0.5rem; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-video, canvas { display: block; max-width: 100%; height: auto; background-color: #000; }
-#controls { margin-top: 1rem; }

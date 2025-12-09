@@ -1,0 +1,42 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-8.4.2, pluggy-1.5.0 -- /home/zesky/miniconda/bin/python
+cachedir: .pytest_cache
+metadata: {'Python': '3.13.5', 'Platform': 'Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39', 'Packages': {'pytest': '8.4.2', 'pluggy': '1.5.0'}, 'Plugins': {'asyncio': '1.2.0', 'mock': '3.15.1', 'langsmith': '0.3.45', 'anyio': '4.11.0', 'cov': '7.0.0', 'metadata': '3.1.1', 'html': '4.1.1', 'hydra-core': '1.3.2'}}
+rootdir: /mnt/d/progress/TALOS_Studio
+configfile: pytest.ini
+plugins: asyncio-1.2.0, mock-3.15.1, langsmith-0.3.45, anyio-4.11.0, cov-7.0.0, metadata-3.1.1, html-4.1.1, hydra-core-1.3.2
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 24 items
+
+tests/unit/test_device_manager.py::TestDeviceManager::test_initialization PASSED [  4%]
+tests/unit/test_device_manager.py::TestDeviceManager::test_available_devices_structure PASSED [  8%]
+tests/unit/test_device_manager.py::TestDeviceManager::test_default_device_is_string PASSED [ 12%]
+tests/unit/test_device_manager.py::TestDeviceManager::test_get_device_without_specification PASSED [ 16%]
+tests/unit/test_device_manager.py::TestDeviceManager::test_get_device_cpu PASSED [ 20%]
+tests/unit/test_device_manager.py::TestDeviceManager::test_get_device_invalid_spec PASSED [ 25%]
+tests/unit/test_device_manager.py::TestDeviceManager::test_get_device_info PASSED [ 29%]
+tests/unit/test_device_manager.py::TestDeviceManager::test_cuda_fallback_on_unavailable PASSED [ 33%]
+tests/unit/test_error_handler.py::TestPipelineError::test_creation_with_message_only PASSED [ 37%]
+tests/unit/test_error_handler.py::TestPipelineError::test_creation_with_details PASSED [ 41%]
+tests/unit/test_error_handler.py::TestPipelineError::test_custom_exit_code PASSED [ 45%]
+tests/unit/test_error_handler.py::TestValidationError::test_validation_error_exit_code PASSED [ 50%]
+tests/unit/test_error_handler.py::TestFileNotFoundError::test_file_not_found_error PASSED [ 54%]
+tests/unit/test_error_handler.py::TestSubprocessError::test_subprocess_error_format PASSED [ 58%]
+tests/unit/test_error_handler.py::TestConfigurationError::test_configuration_error_format PASSED [ 62%]
+tests/unit/test_error_handler.py::TestDeviceError::test_device_error_exit_code PASSED [ 66%]
+tests/unit/test_example.py::test_example_unit PASSED                     [ 70%]
+tests/unit/test_pipeline_executor.py::TestPipelineExecutor::test_initialization_with_missing_config PASSED [ 75%]
+tests/unit/test_pipeline_executor.py::TestPipelineExecutor::test_initialization_with_valid_config PASSED [ 79%]
+tests/unit/test_pipeline_executor.py::TestPipelineExecutor::test_validate_inputs_success PASSED [ 83%]
+tests/unit/test_pipeline_executor.py::TestPipelineExecutor::test_validate_inputs_missing_file PASSED [ 87%]
+tests/unit/test_pipeline_executor.py::TestPipelineExecutor::test_validate_inputs_invalid_type PASSED [ 91%]
+tests/unit/test_pipeline_executor.py::TestPipelineExecutor::test_ensure_directory PASSED [ 95%]
+tests/unit/test_pipeline_executor.py::TestPipelineExecutor::test_configuration_loading_with_invalid_yaml PASSED [100%]
+
+=============================== warnings summary ===============================
+../../../../home/zesky/miniconda/lib/python3.13/site-packages/torch/cuda/__init__.py:61
+  /home/zesky/miniconda/lib/python3.13/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+    import pynvml  # type: ignore[import]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 24 passed, 1 warning in 1.47s =========================

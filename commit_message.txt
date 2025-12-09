@@ -1,8 +1,0 @@
-docs: Add progress summary document
-
-This document summarizes the current status of the Manga to 3D PoC pipeline project,
-including initial setup, documentation updates, conceptual code implementation,
-and a detailed account of the dependency installation challenges encountered.
-
-It concludes with recommendations for human intervention to set up a compatible
-development environment.

@@ -1,0 +1,29 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>움직임 악보: 복싱 분석기</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/three@0.148.0/build/three.min.js"></script>
+</head>
+<body>
+    <h1>움직임 악보: 복싱 분석 시각화</h1>
+    <div class="container">
+        <div class="main-view">
+            <div id="video-container">
+                <video id="boxing-video" controls muted>
+                    <source src="/video" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div id="viewer-3d-container">
+                 <div id="viewer-3d"></div>
+            </div>
+        </div>
+        <div id="timeline-container"></div>
+    </div>
+    <script src="/static/visualizer.js"></script>
+</body>
+</html>

@@ -6,9 +6,13 @@ venv/
 venv_vibe/
 /AXIS/venv/
 
-# Python cache
+# Python cache and build artifacts
 __pycache__/
 *.py[cod]
+*.egg-info/
+*.egg
+build/
+dist/
 
 # Node.js dependencies
 node_modules/
@@ -57,3 +61,10 @@ AXIS/models/
 # Generated output directories
 output_for_deployment/
 temp/
+triposr_output/
+results/test_reports/
+
+# Temporary and junk files
+=*
+commit_message.txt
+pipeline.log
